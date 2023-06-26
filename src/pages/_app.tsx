@@ -2,12 +2,28 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "~/components/ui/theme-provider";
+import Navbar from "~/components/Navbar";
+import { TimerProvider } from "~/state/timer/TimerContext";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <ClerkProvider {...pageProps}>
-      <Component {...pageProps} />
-    </ClerkProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+      <ClerkProvider
+        appearance={{
+          variables: {
+            colorPrimary: "#0ea5e9",
+          },
+        }}
+        {...pageProps}
+      >
+        <TimerProvider>
+
+        <Navbar />
+        <Component {...pageProps} />
+        </TimerProvider>
+      </ClerkProvider>
+    </ThemeProvider>
   );
 };
 

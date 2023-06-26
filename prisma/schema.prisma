@@ -11,8 +11,17 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Example {
+model Todo {
     id        String   @id @default(cuid())
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    
+    title     String
+    description String?
+    completed Boolean  @default(false)
+    dueDate   DateTime?
+    priority  Int      @default(0)
+    tomatoes  Int      @default(0)
+    authorId String
+
+    @@index([authorId])
 }
