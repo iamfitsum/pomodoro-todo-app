@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "~/components/ui/theme-provider";
 import Navbar from "~/components/Navbar";
 import { TimerProvider } from "~/state/timer/TimerContext";
+import { Toaster } from "~/components/ui/toaster"
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
@@ -18,9 +19,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         {...pageProps}
       >
         <TimerProvider>
-
-        <Navbar />
-        <Component {...pageProps} />
+          <Navbar />
+          <Component {...pageProps} />
+          <Toaster />
         </TimerProvider>
       </ClerkProvider>
     </ThemeProvider>

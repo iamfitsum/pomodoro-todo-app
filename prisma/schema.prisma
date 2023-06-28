@@ -17,9 +17,9 @@ model Todo {
     
     title     String
     description String?
-    completed Boolean  @default(false)
+    done Boolean  @default(false)
     dueDate   DateTime?
-    priority  Int      @default(0)
+    priority  String?      @default("LOW")
     tomatoes  Int      @default(0)
     authorId String
 

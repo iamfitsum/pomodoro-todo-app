@@ -25,8 +25,8 @@ const PomodoroTimers = () => {
   const timeDuration = timerDurations[activeTimer];
   const secTimeRemaining = timeRemaining;
   return (
-    <div className="flex flex-col h-screen w-full items-center justify-center">
-      <Tabs defaultValue="pomodoro" className="w-full md:w-2/5">
+    <div className="flex flex-col h-screen w-full items-center">
+      <Tabs defaultValue="pomodoro" className="w-full">
         <TabsList  className="grid w-full grid-cols-3">
           <TabsTrigger
             value="pomodoro"

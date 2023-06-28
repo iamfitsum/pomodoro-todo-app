@@ -22,12 +22,16 @@ const Navbar = () => {
       return undefined
     }
   } 
+   //Returns empty div if user is not loaded
+  if (!userLoaded) return <div />;
   return (
-    <div className="fixed inset-x-0 top-0 z-[10] h-fit border-b border-zinc-200/10 bg-zinc-400/10 py-3">
+    <div className="flex h-fit border-b border-zinc-200/10 bg-zinc-400/10 py-3">
       <div className="container mx-auto flex h-full max-w-7xl items-center justify-between gap-2">
         {/* logo */}
         <Link href="/" className="flex items-center gap-2">
-          <p className="text-2xl font-extrabold text-sky-500">PomodoroTodo</p>
+          <p className="text-transparent bg-clip-text bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] text-2xl font-extrabold">
+            PomodoroTodo
+          </p>
         </Link>
 
         {/* actions */}
@@ -38,7 +42,7 @@ const Navbar = () => {
               appearance={{
                 elements: {
                   avatarBox: "h-10 w-10",
-                }, 
+                },
                 baseTheme: userButtonTheme(),
               }}
             />
