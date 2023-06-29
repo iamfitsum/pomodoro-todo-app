@@ -30,13 +30,36 @@ export default function Home() {
         <main className="flex min-h-screen flex-col md:flex-row">
           <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-10 text-white md:max-w-lg">
             <div className="flex space-x-2">
-
-            <TodoForm />
-            <TodoCombobox />
+              <TodoForm />
+              <TodoCombobox />
             </div>
-            <h1 className="text-2xl font-bold md:text-3xl">
-              This is a todo title This is a todo title
-            </h1>
+            <hr className="my-10" />
+            <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
+              <div>
+                <p className="text-xl">
+                  {new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+
+                <p className="font-extralight">
+                  Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </p>
+              </div>
+
+              <p className="text-xl font-bold uppercase">
+                {new Date().toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+              </p>
+            </div>
+
+            <hr className="mb-5 mt-10" />
           </div>
           <div className="flex-1 p-2">
             <Tabs defaultValue="task" className="w-full">

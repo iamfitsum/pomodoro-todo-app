@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useState } from "react";
+import { createContext, type PropsWithChildren, useState } from "react";
 
 export enum TimerVariants {
   POMODORO = "pomodoro",
