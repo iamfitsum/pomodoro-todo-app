@@ -102,10 +102,10 @@ const TodoForm = () => {
       <DialogTrigger asChild onClick={() => setOpenDialog(true)}>
         <Button
           variant="outline"
-          className="w-full space-x-1 text-center font-bold text-[#0ea5e9]"
+          className="w-fit space-x-1 text-center font-semibold text-[#0ea5e9]"
         >
           <PlusCircle size={20} />
-          <span className="text-xl">Add Todo</span>
+          <span className="text-xl">Todo</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

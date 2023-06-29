@@ -6,10 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import PomodoroTimers from "~/components/PomodoroTimers";
 import WelcomePage from "~/components/WelcomePage";
 import TodoForm from "~/components/TodoForm";
+import TodoCombobox from "~/components/TodoCombobox";
+import { api } from "~/utils/api";
 
 export default function Home() {
-  // const { data } = api.todo.getAll.useQuery();
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+
+  api.todo.getAll.useQuery();
 
   if (!userLoaded) return <div />;
   return (
@@ -26,7 +29,11 @@ export default function Home() {
       {isSignedIn && (
         <main className="flex min-h-screen flex-col md:flex-row">
           <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-10 text-white md:max-w-lg">
+            <div className="flex space-x-2">
+
             <TodoForm />
+            <TodoCombobox />
+            </div>
             <h1 className="text-2xl font-bold md:text-3xl">
               This is a todo title This is a todo title
             </h1>

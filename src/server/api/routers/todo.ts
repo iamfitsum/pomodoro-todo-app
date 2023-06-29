@@ -1,13 +1,28 @@
+import type { Todo } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 
+const filterTodosForClient = (todos: Todo[]) => {
+  return todos.map((todo) => {
+    return {
+      id: todo.id,
+      title: todo.title,
+    }
+  })
+}
+
 export const todoRouter = createTRPCRouter({
-  getAll: privateProcedure.query(({ ctx }) => {
-    return ctx.prisma.todo.findMany({
+  getAll: privateProcedure.query(async ({ ctx }) => {
+    const todos = await ctx.prisma.todo.findMany({
       where: {
         authorId: ctx.userId,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
+
+    return filterTodosForClient(todos);
   }),
   create: privateProcedure
     .input(
