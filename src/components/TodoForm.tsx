@@ -45,6 +45,8 @@ import { useState } from "react";
 const todoFormSchema = z.object({
   title: z.string().min(1, {
     message: "Must be at least 1 character",
+  }).max(32,{
+    message: "Must be less than 32 characters"
   }),
   description: z.string().optional(),
   duedate: z.date().optional(),
@@ -105,7 +107,7 @@ const TodoForm = () => {
           className="w-fit space-x-1 text-center font-semibold text-[#0ea5e9]"
         >
           <PlusCircle size={20} />
-          <span className="text-xl">Todo</span>
+          <span className="text-lg">Todo</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -142,7 +144,7 @@ const TodoForm = () => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bio</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Add description to your to do"

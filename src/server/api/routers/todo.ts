@@ -7,9 +7,9 @@ const filterTodosForClient = (todos: Todo[]) => {
     return {
       id: todo.id,
       title: todo.title,
-    }
-  })
-}
+    };
+  });
+};
 
 export const todoRouter = createTRPCRouter({
   getAll: privateProcedure.query(async ({ ctx }) => {
@@ -24,6 +24,15 @@ export const todoRouter = createTRPCRouter({
 
     return filterTodosForClient(todos);
   }),
+  getSelectedTodo: privateProcedure
+    .input(z.object({ todoId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.todo.findUnique({
+        where: {
+          id: input.todoId,
+        },
+      });
+    }),
   create: privateProcedure
     .input(
       z.object({

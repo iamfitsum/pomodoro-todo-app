@@ -8,13 +8,54 @@ import WelcomePage from "~/components/WelcomePage";
 import TodoForm from "~/components/TodoForm";
 import TodoCombobox from "~/components/TodoCombobox";
 import { api } from "~/utils/api";
+import { useState } from "react";
+import SelectedTodoAnalytics from "~/components/SelectedTodoAnalytics";
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const [selectedTodo, setSelectedTodo] = useState<{
+    value: string;
+    label: string;
+  }>({ value: "", label: "" });
+  const [fullTodo, setFullTodo] = useState<
+  | {
+    id: string;
+    createdAt: Date;
+    title: string;
+    description: string | null;
+    done: boolean;
+    dueDate: Date | null;
+    priority: string | null;
+    tomatoes: number;
+    authorId: string;
+  }>({
+    id: "",
+    createdAt: new Date(),
+    title: "",
+    description: "",
+    done: false,
+    dueDate: new Date(),
+    priority: "",
+    tomatoes: 0,
+    authorId: "",
+  });
 
   api.todo.getAll.useQuery();
+  api.todo.getSelectedTodo.useQuery({ todoId: selectedTodo.value });
 
-  if (!userLoaded) return <div />;
+  const getFullTodo = api.todo.getSelectedTodo.useQuery(
+    { todoId: selectedTodo.value },
+    {
+      onSuccess(data) {
+        if(data){
+
+          setFullTodo(data);
+        }
+      },
+    }
+  );
+
+  if (!userLoaded || !getFullTodo) return <div />;
   return (
     <>
       <Head>
@@ -31,7 +72,10 @@ export default function Home() {
           <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-10 text-white md:max-w-lg">
             <div className="flex space-x-2">
               <TodoForm />
-              <TodoCombobox />
+              <TodoCombobox
+                selectedTodo={selectedTodo}
+                setSelectedTodo={setSelectedTodo}
+              />
             </div>
             <hr className="my-10" />
             <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
@@ -58,8 +102,23 @@ export default function Home() {
                 })}
               </p>
             </div>
+            <hr className="my-10" />
 
-            <hr className="mb-5 mt-10" />
+            <SelectedTodoAnalytics fullTodo={fullTodo} />
+            {/* <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
+                <DollarSign className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$45,231.89</div>
+                <p className="text-muted-foreground text-xs">
+                  +20.1% from last month
+                </p>
+              </CardContent>
+            </Card> */}
           </div>
           <div className="flex-1 p-2">
             <Tabs defaultValue="task" className="w-full">

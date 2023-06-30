@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "~/utils/utils";
@@ -18,12 +18,23 @@ import {
 
 import { api } from "~/utils/api";
 
-const TodoCombobox = () => {
-  const [open, setOpen] = useState(false);
-  const [selectedTodo, setSelectedTodo] = useState<{
+type Props = {
+  selectedTodo: {
+    value: string,
+    label: string
+  },
+  setSelectedTodo: React.Dispatch<React.SetStateAction<{
     value: string;
     label: string;
-  }>({ value: "", label: "" });
+}>>;
+};
+
+const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
+  const [open, setOpen] = useState(false);
+  // const [selectedTodo, setSelectedTodo] = useState<{
+  //   value: string;
+  //   label: string;
+  // }>({ value: "", label: "" });
   const [todos, setTodos] = useState<
     | {
         value: string;
@@ -55,7 +66,7 @@ const TodoCombobox = () => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] md:w-[320px] justify-between text-[#0ea5e9]"
+            className="w-[200px] justify-between text-md text-[#0ea5e9] md:w-[320px]"
           >
             {selectedTodo.value
               ? todos?.find((todo) => todo.value === selectedTodo.value)?.label
@@ -63,7 +74,7 @@ const TodoCombobox = () => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] md:w-[320px] p-0">
+        <PopoverContent className="w-[200px] p-0 md:w-[320px]">
           <Command>
             <CommandInput placeholder="Search todo..." />
             <CommandEmpty>No todo found.</CommandEmpty>
