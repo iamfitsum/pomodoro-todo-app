@@ -86,7 +86,7 @@ Make sure you have the following software installed on your machine:
 5. Run database migrations:
 
    ```bash
-   npx prisma migrate dev --preview-feature
+   npx prisma db push
    ```
 
 6. Start the application:
