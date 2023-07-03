@@ -55,7 +55,6 @@ Follow the instructions below to set up and run the Pomodoro-Based To-Do App loc
 Make sure you have the following software installed on your machine:
 
 - Node.js
-- PostgreSQL
 
 ### Installation
 
