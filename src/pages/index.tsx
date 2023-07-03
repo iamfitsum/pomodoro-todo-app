@@ -65,7 +65,7 @@ export default function Home() {
     onSuccess(data) {
       const doneTodosByMonthData = data.map((analytics) => {
         return {
-          name: analytics.name,
+          name: analytics.name.substring(0, 3),
           total: analytics.total,
         };
       });
@@ -77,7 +77,7 @@ export default function Home() {
     onSuccess(data) {
       const undoneTodosByMonthData = data.map((analytics) => {
         return {
-          name: analytics.name,
+          name: analytics.name.substring(0,3),
           total: analytics.total,
         };
       });
