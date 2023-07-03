@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,6 +39,7 @@ import { useContext, useEffect } from "react";
 import TimerContext from "~/state/timer/TimerContext";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Trash2 } from "lucide-react";
 
 dayjs.extend(relativeTime);
 
@@ -68,10 +70,9 @@ type Props = {
     tomatoes: number;
     authorId: string;
   };
-  enableTimer: boolean;
 };
 
-const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
+const EditTodoForm = ({ fullTodo }: Props) => {
   const ctx = api.useContext();
   const { completedTomatoes } = useContext(TimerContext);
   const form = useForm<z.infer<typeof todoFormSchema>>({
@@ -88,7 +89,7 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
     if (completedTomatoes === 0) {
       return;
     }
-    mutate({
+    updateTodo({
       id: fullTodo.id,
       title: fullTodo.title,
       description: fullTodo.description!,
@@ -107,10 +108,9 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
       duedate: fullTodo.dueDate!,
       priority: fullTodo.priority!,
     });
-    console.log("this is in Edit full todo", fullTodo);
   }, [fullTodo, form]);
 
-  const { mutate, isLoading: isPosting } = api.todo.update.useMutation({
+  const { mutate: updateTodo } = api.todo.update.useMutation({
     onSuccess: () => {
       toast({
         title: "Todo updated",
@@ -118,7 +118,9 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
       });
       void ctx.todo.getAll.invalidate();
       void ctx.todo.getSelectedTodo.invalidate();
-      console.log("About to reset", fullTodo);
+      void ctx.todo.doneTodosByMonth.invalidate();
+      void ctx.todo.undoneTodosByMonth.invalidate();
+
       form.reset({
         title: fullTodo.title,
         description: fullTodo.description!,
@@ -146,7 +148,7 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
   });
 
   function onSubmit(data: z.infer<typeof todoFormSchema>) {
-    mutate({
+    updateTodo({
       id: fullTodo.id,
       title: data.title,
       description: data.description,
@@ -161,6 +163,44 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
     void form.handleSubmit(onSubmit)();
   };
 
+  const deleteTodo = api.todo.delete.useMutation({});
+
+  const handleDelete = () => {
+    deleteTodo.mutate(
+      { id: fullTodo.id },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Todo deleted",
+            description: "Your todo has been deleted",
+          });
+          void ctx.todo.getAll.invalidate();
+          void ctx.todo.getSelectedTodo.invalidate();
+          void ctx.todo.doneTodosByMonth.invalidate();
+          void ctx.todo.undoneTodosByMonth.invalidate();
+
+          location.reload();
+        },
+        onError: (err) => {
+          const errorMessage = err.data?.zodError?.fieldErrors.content;
+          if (errorMessage && errorMessage[0]) {
+            toast({
+              variant: "destructive",
+              title: "Todo deletion failed",
+              description: errorMessage[0],
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Todo deletion failed",
+              description: "Failed to delete todo! Please try again later.",
+            });
+          }
+        },
+      }
+    );
+  };
+
   return (
     <div>
       <Form {...form}>
@@ -173,151 +213,159 @@ const EditTodoForm = ({ fullTodo, enableTimer }: Props) => {
             <Badge variant="outline">
               {dayjs(fullTodo.createdAt).fromNow()}
             </Badge>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">Edit</Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 md:w-96">
-                <div className="grid gap-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Your todo"
-                            {...field}
-                            onBlur={handleFormChange}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This is the title of your todo.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Add description to your to do"
-                            className="resize-none"
-                            {...field}
-                            onBlur={handleFormChange}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          You can add more information about your todo here.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="duedate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Due Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Select
-                              onValueChange={(value: string) => {
-                                field.onChange(
-                                  addDays(new Date(), parseInt(value))
-                                );
-                                handleFormChange();
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select" />
-                              </SelectTrigger>
-                              <SelectContent position="popper">
-                                <SelectItem value="0">Today</SelectItem>
-                                <SelectItem value="1">Tomorrow</SelectItem>
-                                <SelectItem value="3">In 3 days</SelectItem>
-                                <SelectItem value="7">In a week</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(value: Date | undefined) => {
-                                field.onChange(value);
-                                handleFormChange();
-                              }}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          Due Date is the due date or deadline for your todo.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="priority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Priority</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={(value: string) => {
-                            field.onChange(value);
-                            handleFormChange();
-                          }}
-                        >
+            <div className="flex space-x-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">Edit</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 md:w-96">
+                  <div className="grid gap-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Priority is the level of urgency of your todo." />
-                            </SelectTrigger>
+                            <Input
+                              placeholder="Your todo"
+                              {...field}
+                              onBlur={handleFormChange}
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="LOW">LOW</SelectItem>
-                            <SelectItem value="MEDIUM">MEDIUM</SelectItem>
-                            <SelectItem value="HIGH">HIGH</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Priority is the level of urgency of your todo.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
+                          <FormDescription>
+                            This is the title of your todo.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Add description to your to do"
+                              className="resize-none"
+                              {...field}
+                              onBlur={handleFormChange}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            You can add more information about your todo here.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="duedate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Due Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <Select
+                                onValueChange={(value: string) => {
+                                  field.onChange(
+                                    addDays(new Date(), parseInt(value))
+                                  );
+                                  handleFormChange();
+                                }}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent position="popper">
+                                  <SelectItem value="0">Today</SelectItem>
+                                  <SelectItem value="1">Tomorrow</SelectItem>
+                                  <SelectItem value="3">In 3 days</SelectItem>
+                                  <SelectItem value="7">In a week</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(value: Date | undefined) => {
+                                  field.onChange(value);
+                                  handleFormChange();
+                                }}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription>
+                            Due Date is the due date or deadline for your todo.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Priority</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={(value: string) => {
+                              field.onChange(value);
+                              handleFormChange();
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Priority is the level of urgency of your todo." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="LOW">LOW</SelectItem>
+                              <SelectItem value="MEDIUM">MEDIUM</SelectItem>
+                              <SelectItem value="HIGH">HIGH</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Priority is the level of urgency of your todo.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <Button variant="outline" onClick={handleDelete} disabled={deleteTodo.isLoading}>
+                <Trash2 />
+              </Button>
+            </div>
           </div>
 
           <FormField

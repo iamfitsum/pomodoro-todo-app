@@ -43,9 +43,7 @@ export default function Home() {
 
   api.todo.getAll.useQuery();
   api.todo.getSelectedTodo.useQuery({ todoId: selectedTodo.value });
-
-  const comptodos = api.todo.doneTodosByMonth.useQuery();
-  console.log(comptodos.data);
+  api.todo.doneTodosByMonth.useQuery();
 
   const [doneTodosByMonth, setDoneTodosByMonth] = useState<
     | {
@@ -92,7 +90,6 @@ export default function Home() {
     {
       onSuccess(data) {
         if (data) {
-          // console.log(data)
           setFullTodo(data);
         }
       },
@@ -175,7 +172,6 @@ export default function Home() {
                     {fullTodo.id !== "" && (
                       <EditTodoForm
                         fullTodo={fullTodo}
-                        enableTimer={enableTimer}
                       />
                     )}
                     <PomodoroTimers
@@ -207,8 +203,6 @@ export default function Home() {
                               fontSize={12}
                               tickLine={false}
                               axisLine={false}
-                              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                              // tickFormatter={(value) => `$${value}`}
                             />
                             <Bar
                               dataKey="total"
@@ -238,8 +232,6 @@ export default function Home() {
                               fontSize={12}
                               tickLine={false}
                               axisLine={false}
-                              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                              // tickFormatter={(value) => `${value}`}
                             />
                             <Bar
                               dataKey="total"

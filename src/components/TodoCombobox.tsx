@@ -39,7 +39,6 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
       }[]
     | null
   >(null);
-  // console.log("Value of selected todo", selectedTodo);
 
   const getTodos = api.todo.getAll.useQuery(undefined, {
     onSuccess(data) {

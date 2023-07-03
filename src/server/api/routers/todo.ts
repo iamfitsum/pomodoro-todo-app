@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Todo } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
@@ -63,6 +64,7 @@ export const todoRouter = createTRPCRouter({
     ];
 
     const todosByMonth = Array.from({ length: 12 }, (_, i) => ({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: monthNames[i]!,
       total: result.filter((todo) => todo.createdAt.getMonth() === i).length,
     }));
@@ -155,5 +157,14 @@ export const todoRouter = createTRPCRouter({
         },
       });
       return todo;
+    }),
+  delete: privateProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.todo.delete({
+        where: {
+          id: input.id,
+        },
+      });
     }),
 });
