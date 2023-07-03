@@ -1,31 +1,32 @@
 import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
-import { Card, CardContent } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import PomodoroTimers from "~/components/PomodoroTimers";
 import WelcomePage from "~/components/WelcomePage";
 import TodoForm from "~/components/TodoForm";
 import TodoCombobox from "~/components/TodoCombobox";
 import { api } from "~/utils/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SelectedTodoAnalytics from "~/components/SelectedTodoAnalytics";
+import EditTodoForm from "~/components/EditTodoForm";
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const [enableTimer, setEnableTimer] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<{
     value: string;
     label: string;
   }>({ value: "", label: "" });
-  const [fullTodo, setFullTodo] = useState<
-  | {
+  const [fullTodo, setFullTodo] = useState<{
     id: string;
     createdAt: Date;
     title: string;
-    description: string | null;
+    description: string | null | undefined;
     done: boolean;
-    dueDate: Date | null;
-    priority: string | null;
+    dueDate: Date | null | undefined;
+    priority: string | null | undefined;
     tomatoes: number;
     authorId: string;
   }>({
@@ -43,19 +44,72 @@ export default function Home() {
   api.todo.getAll.useQuery();
   api.todo.getSelectedTodo.useQuery({ todoId: selectedTodo.value });
 
+  const comptodos = api.todo.doneTodosByMonth.useQuery();
+  console.log(comptodos.data);
+
+  const [doneTodosByMonth, setDoneTodosByMonth] = useState<
+    | {
+        name: string;
+        total: number;
+      }[]
+    | undefined
+  >(undefined);
+
+  const [undoneTodosByMonth, setUndoneTodosByMonth] = useState<
+    | {
+        name: string;
+        total: number;
+      }[]
+    | undefined
+  >(undefined);
+
+  api.todo.doneTodosByMonth.useQuery(undefined, {
+    onSuccess(data) {
+      const doneTodosByMonthData = data.map((analytics) => {
+        return {
+          name: analytics.name,
+          total: analytics.total,
+        };
+      });
+      setDoneTodosByMonth([...new Set(doneTodosByMonthData)]);
+    },
+  });
+
+  api.todo.undoneTodosByMonth.useQuery(undefined, {
+    onSuccess(data) {
+      const undoneTodosByMonthData = data.map((analytics) => {
+        return {
+          name: analytics.name,
+          total: analytics.total,
+        };
+      });
+      setUndoneTodosByMonth([...new Set(undoneTodosByMonthData)]);
+    },
+  });
+
   const getFullTodo = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
     {
       onSuccess(data) {
-        if(data){
-
+        if (data) {
+          // console.log(data)
           setFullTodo(data);
         }
       },
     }
   );
 
-  if (!userLoaded || !getFullTodo) return <div />;
+  
+
+  useEffect(() => {
+    if (selectedTodo.value !== "") {
+      setEnableTimer(true);
+    } else if (selectedTodo.value === "") {
+      setEnableTimer(false);
+    }
+  }, [selectedTodo, getFullTodo]);
+
+  if (!userLoaded) return <div />;
   return (
     <>
       <Head>
@@ -69,7 +123,7 @@ export default function Home() {
       {!isSignedIn && <WelcomePage />}
       {isSignedIn && (
         <main className="flex min-h-screen flex-col md:flex-row">
-          <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-10 text-white md:max-w-lg">
+          <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:max-w-lg md:p-10">
             <div className="flex space-x-2">
               <TodoForm />
               <TodoCombobox
@@ -104,21 +158,10 @@ export default function Home() {
             </div>
             <hr className="my-10" />
 
-            <SelectedTodoAnalytics fullTodo={fullTodo} />
-            {/* <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Revenue
-                </CardTitle>
-                <DollarSign className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$45,231.89</div>
-                <p className="text-muted-foreground text-xs">
-                  +20.1% from last month
-                </p>
-              </CardContent>
-            </Card> */}
+            <SelectedTodoAnalytics
+              fullTodo={fullTodo}
+              enableTimer={enableTimer}
+            />
           </div>
           <div className="flex-1 p-2">
             <Tabs defaultValue="task" className="w-full">
@@ -128,14 +171,86 @@ export default function Home() {
               </TabsList>
               <TabsContent value="task">
                 <Card className="bg-muted">
-                  <CardContent className="w-full p-2">
-                    <PomodoroTimers />
+                  <CardContent className="w-full space-y-2 p-2">
+                    {fullTodo.id !== "" && (
+                      <EditTodoForm
+                        fullTodo={fullTodo}
+                        enableTimer={enableTimer}
+                      />
+                    )}
+                    <PomodoroTimers
+                      enableTimer={enableTimer}
+                      selectedTodo={selectedTodo}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
               <TabsContent value="analytics">
                 <Card className="bg-muted">
-                  <CardContent className="space-y-2"></CardContent>
+                  <CardContent className="w-full space-y-2 p-2">
+                    <Card className="bg-muted">
+                      <CardHeader>
+                        <CardTitle>Done Todos By Month</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={350}>
+                          <BarChart data={doneTodosByMonth}>
+                            <XAxis
+                              dataKey="name"
+                              stroke="#888888"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <YAxis
+                              stroke="#888888"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                              // tickFormatter={(value) => `$${value}`}
+                            />
+                            <Bar
+                              dataKey="total"
+                              fill="#0ea5e9"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted">
+                      <CardHeader>
+                        <CardTitle>Undone Todos By Month</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={350}>
+                          <BarChart data={undoneTodosByMonth}>
+                            <XAxis
+                              dataKey="name"
+                              stroke="#888888"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                            />
+                            <YAxis
+                              stroke="#888888"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                              // tickFormatter={(value) => `${value}`}
+                            />
+                            <Bar
+                              dataKey="total"
+                              fill="#0ea5e9"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>

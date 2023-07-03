@@ -15,6 +15,9 @@ type ITimerContext = {
   paused: boolean;
   setPaused: (p: boolean) => void;
 
+  completedTomatoes: number;
+  setCompletedTomatoes: (t: number) => void;
+
   timeRemaining: number;
   setTimeRemaining: (t: number) => void;
 
@@ -28,6 +31,9 @@ const defaultValue: ITimerContext = {
 
   paused: true,
   setPaused: (p: boolean) => undefined,
+
+  completedTomatoes: 0,
+  setCompletedTomatoes: (t: number) => undefined,
 
   timeRemaining: 0,
   setTimeRemaining: (t: number) => undefined,
@@ -45,7 +51,7 @@ const TimerContext = createContext<ITimerContext>(defaultValue);
 export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [activeTimer, setActiveTimer] = useState(defaultValue.activeTimer);
   const [paused, setPaused] = useState(defaultValue.paused);
-
+  const [completedTomatoes, setCompletedTomatoes] = useState(defaultValue.completedTomatoes);
   const [timerDurations, setTimerDuration] = useState(
     defaultValue.timerDurations
   );
@@ -65,6 +71,8 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         setTimeRemaining,
         timerDurations,
         setTimerDuration,
+        completedTomatoes,
+        setCompletedTomatoes,
       }}>
       {children}
     </TimerContext.Provider>

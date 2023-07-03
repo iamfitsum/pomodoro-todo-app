@@ -1,18 +1,21 @@
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "~/components/ui/card";
+import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { PauseCircle, RotateCw, XCircle } from "lucide-react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
 import TimerDial from "~/components/TimerDial";
 import { PlayCircle } from "lucide-react";
 
+type Props = {
+  enableTimer: boolean;
+  selectedTodo: {
+    value: string;
+    label: string;
+  };
+};
 
-const PomodoroTimers = () => {
+const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
   const {
     activeTimer,
     setActiveTimer,
@@ -22,12 +25,29 @@ const PomodoroTimers = () => {
     paused,
     setPaused,
   } = useContext(TimerContext);
+
   const timeDuration = timerDurations[activeTimer];
   const secTimeRemaining = timeRemaining;
+
+  useEffect(() => {
+    setTimeRemaining(timerDurations.pomodoro);
+    setActiveTimer(TimerVariants.POMODORO);
+    setPaused(true);
+  }, [
+    selectedTodo,
+    setTimeRemaining,
+    setActiveTimer,
+    setPaused,
+    timerDurations.pomodoro,
+  ]);
   return (
-    <div className="flex flex-col h-screen w-full items-center">
-      <Tabs defaultValue="pomodoro" className="w-full" value={activeTimer.valueOf()}>
-        <TabsList  className="grid w-full grid-cols-3">
+    <div className="flex h-screen w-full flex-col items-center">
+      <Tabs
+        defaultValue="pomodoro"
+        className="w-full"
+        value={activeTimer.valueOf()}
+      >
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger
             value="pomodoro"
             onClick={() => {
@@ -73,6 +93,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
@@ -83,6 +104,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => setPaused(!paused)}
               >
                 {paused ? (
@@ -94,6 +116,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
@@ -118,6 +141,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
@@ -128,6 +152,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => setPaused(!paused)}
               >
                 {paused ? (
@@ -139,6 +164,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
@@ -163,6 +189,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
@@ -173,6 +200,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => setPaused(!paused)}
               >
                 {paused ? (
@@ -184,6 +212,7 @@ const PomodoroTimers = () => {
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
+                disabled={!enableTimer}
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);

@@ -1,5 +1,5 @@
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect} from "react";
 // import alarmAudio from "/doorbell.mp3";
 
 export interface ITimerDial {
@@ -32,10 +32,15 @@ const secondsToMinutesString = (seconds: number) =>
   parseInt(`${seconds}`).toString().padStart(2, "0");
 
 const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
-  const { paused, setTimeRemaining, activeTimer, setActiveTimer, setPaused } =
-    useContext(TimerContext);
-
-  const [focusCount, setFocusCount] = useState(0);
+  const {
+    paused,
+    setTimeRemaining,
+    activeTimer,
+    setActiveTimer,
+    setPaused,
+    completedTomatoes,
+    setCompletedTomatoes
+  } = useContext(TimerContext);
 
   const secTimeDuration = convertMinutesToSeconds(timeDuration);
   const secTimeRemaining = convertMinutesToSeconds(timeRemaining);
@@ -60,13 +65,13 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
         clearInterval(intervalId);
 
         if (activeTimer === TimerVariants.POMODORO) {
-          setFocusCount(focusCount + 1);
+          setCompletedTomatoes(completedTomatoes + 1);
           setActiveTimer(TimerVariants.SHORT);
           setTimeRemaining(5);
           setPaused(true);
         } else if (activeTimer === TimerVariants.SHORT) {
-          if (focusCount === 4) {
-            setFocusCount(0);
+          if (completedTomatoes === 4) {
+            setCompletedTomatoes(0);
             setActiveTimer(TimerVariants.LONG);
             setTimeRemaining(15);
             setPaused(true);
@@ -92,26 +97,17 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     activeTimer,
     setActiveTimer,
     setPaused,
-    focusCount,
-    setFocusCount,
+    completedTomatoes,
+    setCompletedTomatoes,
   ]);
 
-  // const handleToggle = () => {
-  //   setPaused(!paused);
-
-  //   if (isFinished) {
-  //     setTimeRemaining(timeDuration);
-  //     setPaused(false);
-  //   }
-  // };
-
   return (
-    <div className="timer">
+    <div className="timer w-[355px] h-[355px] md:w-96 md:h-96">
       <svg className="h-full w-full">
         <circle
           cx="50%"
           cy="50%"
-          r="150"
+          r="160"
           pathLength="1"
           className="countdown"
           style={{

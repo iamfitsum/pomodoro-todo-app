@@ -33,6 +33,78 @@ export const todoRouter = createTRPCRouter({
         },
       });
     }),
+  doneTodosByMonth: privateProcedure.query(async ({ ctx }) => {
+    const result = await ctx.prisma.todo.findMany({
+      where: {
+        done: true,
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
+          lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const todosByMonth = Array.from({ length: 12 }, (_, i) => ({
+      name: monthNames[i]!,
+      total: result.filter((todo) => todo.createdAt.getMonth() === i).length,
+    }));
+
+    return todosByMonth;
+  }),
+  undoneTodosByMonth: privateProcedure.query(async ({ ctx }) => {
+    const result = await ctx.prisma.todo.findMany({
+      where: {
+        done: false,
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
+          lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const todosByMonth = Array.from({ length: 12 }, (_, i) => ({
+      name: monthNames[i]!,
+      total: result.filter((todo) => todo.createdAt.getMonth() === i).length,
+    }));
+
+    return todosByMonth;
+  }),
   create: privateProcedure
     .input(
       z.object({
@@ -52,6 +124,34 @@ export const todoRouter = createTRPCRouter({
           description: input.description,
           dueDate: input.duedate,
           priority: input.priority,
+        },
+      });
+      return todo;
+    }),
+  update: privateProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        done: z.boolean().optional(),
+        duedate: z.date().optional(),
+        priority: z.string().optional(),
+        tomatoes: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const todo = await ctx.prisma.todo.update({
+        data: {
+          title: input.title,
+          description: input.description,
+          done: input.done,
+          dueDate: input.duedate,
+          priority: input.priority,
+          tomatoes: input.tomatoes,
+        },
+        where: {
+          id: input.id,
         },
       });
       return todo;

@@ -31,10 +31,7 @@ type Props = {
 
 const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
   const [open, setOpen] = useState(false);
-  // const [selectedTodo, setSelectedTodo] = useState<{
-  //   value: string;
-  //   label: string;
-  // }>({ value: "", label: "" });
+
   const [todos, setTodos] = useState<
     | {
         value: string;
@@ -66,7 +63,7 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between text-md text-[#0ea5e9] md:w-[320px]"
+            className="w-[240px] justify-between text-md text-[#0ea5e9] md:w-[320px]"
           >
             {selectedTodo.value
               ? todos?.find((todo) => todo.value === selectedTodo.value)?.label
@@ -74,7 +71,7 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0 md:w-[320px]">
+        <PopoverContent className="w-[240px] p-0 md:w-[320px]">
           <Command>
             <CommandInput placeholder="Search todo..." />
             <CommandEmpty>No todo found.</CommandEmpty>
