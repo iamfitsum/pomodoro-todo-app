@@ -1,6 +1,5 @@
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
 import { useContext, useEffect} from "react";
-// import alarmAudio from "/doorbell.mp3";
 
 export interface ITimerDial {
   /**

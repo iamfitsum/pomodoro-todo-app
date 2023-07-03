@@ -363,7 +363,7 @@ const EditTodoForm = ({ fullTodo }: Props) => {
                 </PopoverContent>
               </Popover>
               <Button variant="outline" onClick={handleDelete} disabled={deleteTodo.isLoading}>
-                <Trash2 />
+                <Trash2 className="w-4 h-4"/>
               </Button>
             </div>
           </div>
