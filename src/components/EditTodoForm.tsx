@@ -96,7 +96,7 @@ const EditTodoForm = ({ fullTodo }: Props) => {
       done: fullTodo.done,
       duedate: fullTodo.dueDate!,
       priority: fullTodo.priority!,
-      tomatoes: fullTodo.tomatoes + completedTomatoes,
+      tomatoes: fullTodo.tomatoes + 1,
     });
   }, [completedTomatoes]);
 
