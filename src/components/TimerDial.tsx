@@ -1,5 +1,5 @@
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
-import { useContext, useEffect} from "react";
+import { useContext, useEffect } from "react";
 
 export interface ITimerDial {
   /**
@@ -66,21 +66,21 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
 
         if (activeTimer === TimerVariants.POMODORO) {
           setIsPomodoroFinished(true);
-          setCompletedTomatoes(completedTomatoes + 1);
-          setActiveTimer(TimerVariants.SHORT);
-          setTimeRemaining(5);
-          setPaused(true);
-        } else if (activeTimer === TimerVariants.SHORT) {
           if (completedTomatoes === 4) {
             setCompletedTomatoes(0);
             setActiveTimer(TimerVariants.LONG);
             setTimeRemaining(15);
             setPaused(true);
           } else {
-            setActiveTimer(TimerVariants.POMODORO);
-            setTimeRemaining(25);
+            setCompletedTomatoes(completedTomatoes + 1);
+            setActiveTimer(TimerVariants.SHORT);
+            setTimeRemaining(5);
             setPaused(true);
           }
+        } else if (activeTimer === TimerVariants.SHORT) {
+          setActiveTimer(TimerVariants.POMODORO);
+          setTimeRemaining(25);
+          setPaused(true);
         } else if (activeTimer === TimerVariants.LONG) {
           setActiveTimer(TimerVariants.POMODORO);
           setTimeRemaining(25);
@@ -104,7 +104,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
   ]);
 
   return (
-    <div className="timer w-[355px] h-[355px] md:w-96 md:h-96">
+    <div className="timer h-[355px] w-[355px] md:h-96 md:w-96">
       <svg className="h-full w-full">
         <circle
           cx="50%"
