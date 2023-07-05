@@ -66,7 +66,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
 
         if (activeTimer === TimerVariants.POMODORO) {
           setIsPomodoroFinished(true);
-          if (completedTomatoes === 4) {
+          if (completedTomatoes === 3) {
             setCompletedTomatoes(0);
             setActiveTimer(TimerVariants.LONG);
             setTimeRemaining(15);
