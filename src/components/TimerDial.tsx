@@ -37,8 +37,9 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     activeTimer,
     setActiveTimer,
     setPaused,
+    setIsPomodoroFinished,
     completedTomatoes,
-    setCompletedTomatoes
+    setCompletedTomatoes,
   } = useContext(TimerContext);
 
   const secTimeDuration = convertMinutesToSeconds(timeDuration);
@@ -64,6 +65,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
         clearInterval(intervalId);
 
         if (activeTimer === TimerVariants.POMODORO) {
+          setIsPomodoroFinished(true);
           setCompletedTomatoes(completedTomatoes + 1);
           setActiveTimer(TimerVariants.SHORT);
           setTimeRemaining(5);
@@ -98,6 +100,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     setPaused,
     completedTomatoes,
     setCompletedTomatoes,
+    setIsPomodoroFinished,
   ]);
 
   return (

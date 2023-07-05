@@ -85,7 +85,8 @@ type Props = {
 
 const EditTodoForm = ({ fullTodo }: Props) => {
   const ctx = api.useContext();
-  const { completedTomatoes } = useContext(TimerContext);
+  const { completedTomatoes, isPomodoroFinished, setIsPomodoroFinished } =
+    useContext(TimerContext);
   const form = useForm<z.infer<typeof todoFormSchema>>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
@@ -97,19 +98,19 @@ const EditTodoForm = ({ fullTodo }: Props) => {
     },
   });
   useEffect(() => {
-    if (completedTomatoes === 0) {
-      return;
+    if (isPomodoroFinished) {
+      updateTodo({
+        id: fullTodo.id,
+        title: fullTodo.title,
+        description: fullTodo.description!,
+        done: fullTodo.done,
+        duedate: fullTodo.dueDate!,
+        priority: fullTodo.priority!,
+        tomatoes: fullTodo.tomatoes + 1,
+      });
+      setIsPomodoroFinished(false);
     }
-    updateTodo({
-      id: fullTodo.id,
-      title: fullTodo.title,
-      description: fullTodo.description!,
-      done: fullTodo.done,
-      duedate: fullTodo.dueDate!,
-      priority: fullTodo.priority!,
-      tomatoes: fullTodo.tomatoes + 1,
-    });
-  }, [completedTomatoes]);
+  }, [isPomodoroFinished, setIsPomodoroFinished]);
 
   useEffect(() => {
     form.reset({

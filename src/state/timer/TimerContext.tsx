@@ -15,6 +15,9 @@ type ITimerContext = {
   paused: boolean;
   setPaused: (p: boolean) => void;
 
+  isPomodoroFinished: boolean;
+  setIsPomodoroFinished: (f: boolean) => void;
+
   completedTomatoes: number;
   setCompletedTomatoes: (t: number) => void;
 
@@ -31,6 +34,9 @@ const defaultValue: ITimerContext = {
 
   paused: true,
   setPaused: (p: boolean) => undefined,
+
+  isPomodoroFinished: false,
+  setIsPomodoroFinished: (f: boolean) => undefined,
 
   completedTomatoes: 0,
   setCompletedTomatoes: (t: number) => undefined,
@@ -51,7 +57,10 @@ const TimerContext = createContext<ITimerContext>(defaultValue);
 export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [activeTimer, setActiveTimer] = useState(defaultValue.activeTimer);
   const [paused, setPaused] = useState(defaultValue.paused);
-  const [completedTomatoes, setCompletedTomatoes] = useState(defaultValue.completedTomatoes);
+  const [isPomodoroFinished, setIsPomodoroFinished] = useState(defaultValue.isPomodoroFinished);
+  const [completedTomatoes, setCompletedTomatoes] = useState(
+    defaultValue.completedTomatoes
+  );
   const [timerDurations, setTimerDuration] = useState(
     defaultValue.timerDurations
   );
@@ -67,13 +76,16 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         setActiveTimer,
         paused,
         setPaused,
+        isPomodoroFinished,
+        setIsPomodoroFinished,
         timeRemaining,
         setTimeRemaining,
         timerDurations,
         setTimerDuration,
         completedTomatoes,
         setCompletedTomatoes,
-      }}>
+      }}
+    >
       {children}
     </TimerContext.Provider>
   );
