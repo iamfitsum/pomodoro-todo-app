@@ -85,7 +85,7 @@ type Props = {
 
 const EditTodoForm = ({ fullTodo }: Props) => {
   const ctx = api.useContext();
-  const { completedTomatoes, isPomodoroFinished, setIsPomodoroFinished } =
+  const { isPomodoroFinished, setIsPomodoroFinished } =
     useContext(TimerContext);
   const form = useForm<z.infer<typeof todoFormSchema>>({
     resolver: zodResolver(todoFormSchema),
@@ -167,7 +167,7 @@ const EditTodoForm = ({ fullTodo }: Props) => {
       done: data.done,
       duedate: data.duedate,
       priority: data.priority,
-      tomatoes: fullTodo.tomatoes + completedTomatoes,
+      tomatoes: fullTodo.tomatoes,
     });
   }
 
