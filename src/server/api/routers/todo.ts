@@ -34,6 +34,21 @@ export const todoRouter = createTRPCRouter({
         },
       });
     }),
+  getTotalTomatoes: privateProcedure.query(async ({ ctx }) => {
+
+    const todos = await ctx.prisma.todo.findMany({
+      where: {
+        authorId: ctx.userId,
+      },
+    });
+
+    const totalTomatoes = todos.reduce(
+      (acc, todo) => acc + (todo.tomatoes ?? 0),
+      0
+    );
+
+    return { totalTomatoes };
+  }),
   doneTodosByMonth: privateProcedure.query(async ({ ctx }) => {
     const result = await ctx.prisma.todo.findMany({
       where: {

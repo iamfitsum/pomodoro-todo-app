@@ -9,7 +9,7 @@ import TodoForm from "~/components/TodoForm";
 import TodoCombobox from "~/components/TodoCombobox";
 import { api } from "~/utils/api";
 import { useEffect, useState } from "react";
-import SelectedTodoAnalytics from "~/components/SelectedTodoAnalytics";
+import TomatoAnalytics from "~/components/TomatoAnalytics"
 import EditTodoForm from "~/components/EditTodoForm";
 
 export default function Home() {
@@ -77,7 +77,7 @@ export default function Home() {
     onSuccess(data) {
       const undoneTodosByMonthData = data.map((analytics) => {
         return {
-          name: analytics.name.substring(0,3),
+          name: analytics.name.substring(0, 3),
           total: analytics.total,
         };
       });
@@ -96,15 +96,17 @@ export default function Home() {
     }
   );
 
-  
-
   useEffect(() => {
     if (selectedTodo.value !== "") {
-      setEnableTimer(true);
+      if (fullTodo.done === true) {
+        setEnableTimer(false);
+      } else {
+        setEnableTimer(true);
+      }
     } else if (selectedTodo.value === "") {
       setEnableTimer(false);
     }
-  }, [selectedTodo, getFullTodo]);
+  }, [selectedTodo, getFullTodo, fullTodo.done]);
 
   if (!userLoaded) return <div />;
   return (
@@ -128,37 +130,8 @@ export default function Home() {
                 setSelectedTodo={setSelectedTodo}
               />
             </div>
-            <hr className="my-10" />
-            <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
-              <div>
-                <p className="text-xl">
-                  {new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
 
-                <p className="font-extralight">
-                  Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
-                </p>
-              </div>
-
-              <p className="text-xl font-bold uppercase">
-                {new Date().toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
-              </p>
-            </div>
-            <hr className="my-10" />
-
-            <SelectedTodoAnalytics
-              fullTodo={fullTodo}
-              enableTimer={enableTimer}
-            />
+            <TomatoAnalytics />
           </div>
           <div className="flex-1 p-2">
             <Tabs defaultValue="task" className="w-full">
@@ -169,11 +142,7 @@ export default function Home() {
               <TabsContent value="task">
                 <Card className="bg-muted">
                   <CardContent className="w-full space-y-2 p-2">
-                    {fullTodo.id !== "" && (
-                      <EditTodoForm
-                        fullTodo={fullTodo}
-                      />
-                    )}
+                    {fullTodo.id !== "" && <EditTodoForm fullTodo={fullTodo} />}
                     <PomodoroTimers
                       enableTimer={enableTimer}
                       selectedTodo={selectedTodo}
