@@ -1,36 +1,91 @@
 import { api } from "~/utils/api";
-import { Apple, Clock } from "lucide-react";
+import { Apple, CircleIcon, Clock } from "lucide-react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
 import { useState } from "react";
+import { cn } from "~/utils/utils";
 
 const getMinuteFromNumber = (num: number) => {
   const minutes = num * 25;
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  const formattedHours = hours.toString().padStart(2, '0');
-  const formattedMinutes = remainingMinutes.toString().padStart(2, '0');
+  const formattedHours = hours.toString().padStart(2, "0");
+  const formattedMinutes = remainingMinutes.toString().padStart(2, "0");
   return `${formattedHours}:${formattedMinutes}`;
-}
+};
 
-const TomatoTodoAnalytics = () => {
+type Props = {
+  fullTodo: {
+    id: string;
+    createdAt: Date;
+    title: string;
+    description: string | null | undefined;
+    done: boolean;
+    dueDate: Date | null | undefined;
+    priority: string | null | undefined;
+    tomatoes: number;
+    authorId: string;
+  };
+};
+
+const TodoAnalytics = ({ fullTodo }: Props) => {
   const [totalTomatoes, setTotalTomatoes] = useState(0);
- api.todo.getTotalTomatoes.useQuery(undefined,
-    {
-      onSuccess(data) {
-        if (data) {
-          setTotalTomatoes(data.totalTomatoes);
-        }
-      },
-    }
-  );
+  api.todo.getTotalTomatoes.useQuery(undefined, {
+    onSuccess(data) {
+      if (data) {
+        setTotalTomatoes(data.totalTomatoes);
+      }
+    },
+  });
   return (
     <>
-      <hr className="my-10" />
+      {fullTodo.id !== "" && (
+        <Card className="mt-2">
+          <CardHeader>
+            <CardDescription className="text-[#0ea5e9] dark:text-[#0ea5e9]">
+              {fullTodo.description}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-muted-foreground flex space-x-3 text-xs md:space-x-4 md:text-sm text-[#0ea5e9]">
+              <div className="flex items-center">
+                <CircleIcon
+                  className={cn(
+                    fullTodo.priority === "LOW" && "text-green-500",
+                    fullTodo.priority === "MEDIUM" && "text-yellow-500",
+                    fullTodo.priority === "HIGH" && "text-red-500",
+                    "mr-1 h-3 w-3 "
+                  )}
+                />
+                {fullTodo.priority}
+              </div>
+              <div className="flex items-center">
+                <Apple className="mr-1 h-3 w-3" />
+                {fullTodo.tomatoes}
+              </div>
+              <div className="flex items-center">
+                <Clock className="mr-1 h-3 w-3" />
+                {getMinuteFromNumber(fullTodo.tomatoes)}
+              </div>
+              <div>
+                Due{" "}
+                {fullTodo.dueDate?.toLocaleDateString("en-US", {
+                  weekday: "short",
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      <hr className="my-5 md:my-10" />
       <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
         <div>
           <p className="text-xl">
@@ -55,7 +110,7 @@ const TomatoTodoAnalytics = () => {
           })}
         </p>
       </div>
-      <hr className="my-10" />
+      <hr className="my-5 md:my-10" />
       <div className="flex w-full justify-between space-x-2">
         <Card className="w-1/2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -94,4 +149,4 @@ const TomatoTodoAnalytics = () => {
   );
 };
 
-export default TomatoTodoAnalytics;
+export default TodoAnalytics;

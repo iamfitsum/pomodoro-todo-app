@@ -106,8 +106,8 @@ const TodoForm = () => {
           variant="outline"
           className="w-fit space-x-1 text-center font-semibold text-[#0ea5e9]"
         >
-          <PlusCircle size={20} />
-          <span className="text-lg">Todo</span>
+          <PlusCircle size={14} />
+          <span className="text-md">Todo</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

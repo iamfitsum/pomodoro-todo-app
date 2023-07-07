@@ -62,7 +62,7 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[240px] justify-between text-md text-[#0ea5e9] md:w-[320px]"
+            className="w-[257px] justify-between text-sm text-[#0ea5e9] md:w-[339px]"
           >
             {selectedTodo.value
               ? todos?.find((todo) => todo.value === selectedTodo.value)?.label

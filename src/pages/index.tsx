@@ -9,7 +9,7 @@ import TodoForm from "~/components/TodoForm";
 import TodoCombobox from "~/components/TodoCombobox";
 import { api } from "~/utils/api";
 import { useEffect, useState } from "react";
-import TomatoAnalytics from "~/components/TomatoAnalytics"
+import TodoAnalytics from "~/components/TodoAnalytics"
 import EditTodoForm from "~/components/EditTodoForm";
 
 export default function Home() {
@@ -131,7 +131,7 @@ export default function Home() {
               />
             </div>
 
-            <TomatoAnalytics />
+            <TodoAnalytics fullTodo={fullTodo} />
           </div>
           <div className="flex-1 p-2">
             <Tabs defaultValue="task" className="w-full">
