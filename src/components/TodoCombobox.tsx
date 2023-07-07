@@ -62,7 +62,7 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[257px] justify-between text-sm text-[#0ea5e9] md:w-[339px]"
+            className="w-full justify-between text-sm text-[#0ea5e9] md:w-[339px]"
           >
             {selectedTodo.value
               ? todos?.find((todo) => todo.value === selectedTodo.value)?.label
@@ -70,11 +70,11 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[240px] p-0 md:w-[320px]">
-          <Command>
+        <PopoverContent className="w-full p-0 md:w-[339px]">
+          <Command className="text-[#0ea5e9] dark:text-[#0ea5e9]">
             <CommandInput placeholder="Search todo..." />
             <CommandEmpty>No todo found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="text-[#0ea5e9] dark:text-[#0ea5e9]">
               {todos?.map((todo) => (
                 <CommandItem
                   key={todo.value}
