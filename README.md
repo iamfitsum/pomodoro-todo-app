@@ -112,6 +112,7 @@ This Pomodoro-Based To-Do App is a [T3 Stack](https://create.t3.gg/) project boo
   - [tRPC](https://trpc.io)
   - [Prisma](https://prisma.io) (ORM)
   - PostgreSQL (Database)
+  - [Supabase](https://supabase.com/)
 - Authentication:
   - [Clerk](https://clerk.com/) (User Management) (Username, Password, Google, and GitHub authentication)
 - Deployment:
