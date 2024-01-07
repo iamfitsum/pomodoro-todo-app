@@ -20,13 +20,15 @@ import { api } from "~/utils/api";
 
 type Props = {
   selectedTodo: {
-    value: string,
-    label: string
-  },
-  setSelectedTodo: React.Dispatch<React.SetStateAction<{
     value: string;
     label: string;
-}>>;
+  };
+  setSelectedTodo: React.Dispatch<
+    React.SetStateAction<{
+      value: string;
+      label: string;
+    }>
+  >;
 };
 
 const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
