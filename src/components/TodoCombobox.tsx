@@ -74,7 +74,7 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
           <Command className="text-[#0ea5e9] dark:text-[#0ea5e9]">
             <CommandInput placeholder="Search todo..." />
             <CommandEmpty>No todo found.</CommandEmpty>
-            <CommandGroup className="text-[#0ea5e9] dark:text-[#0ea5e9]">
+            <CommandGroup className="h-fit max-h-96 overflow-y-auto text-[#0ea5e9] dark:text-[#0ea5e9]">
               {todos?.map((todo) => (
                 <CommandItem
                   key={todo.value}
