@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import TodoAnalytics from "~/components/TodoAnalytics"
 import EditTodoForm from "~/components/EditTodoForm";
 import { Clock } from "lucide-react"
+import Footer from "~/components/Footer";
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
@@ -222,6 +223,7 @@ export default function Home() {
           </div>
         </main>
       )}
+                <Footer />
     </>
   );
 }

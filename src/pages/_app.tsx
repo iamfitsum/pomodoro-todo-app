@@ -4,7 +4,6 @@ import "~/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "~/components/ui/theme-provider";
 import Navbar from "~/components/Navbar";
-import Footer from "~/components/Footer";
 import { TimerProvider } from "~/state/timer/TimerContext";
 import { Toaster } from "~/components/ui/toaster"
 
@@ -22,7 +21,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <TimerProvider>
           <Navbar />
           <Component {...pageProps} />
-          <Footer />
           <Toaster />
         </TimerProvider>
       </ClerkProvider>
