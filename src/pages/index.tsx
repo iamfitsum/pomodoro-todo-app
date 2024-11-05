@@ -11,6 +11,7 @@ import { api } from "~/utils/api";
 import { useEffect, useState } from "react";
 import TodoAnalytics from "~/components/TodoAnalytics"
 import EditTodoForm from "~/components/EditTodoForm";
+import { Clock } from "lucide-react"
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();

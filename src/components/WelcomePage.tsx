@@ -1,31 +1,59 @@
-import Link from "next/link";
+import { Button } from "~/components/ui/button"
+import { CheckCircle2, Clock, List, BarChart } from "lucide-react"
+import Link from "next/link"
 
 const WelcomePage = () => {
   return (
-    <div className="h-screen">
-      <div className="flex h-3/4 flex-col items-center justify-center space-y-10">
-        <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] bg-clip-text pb-3 text-center text-4xl font-bold text-transparent md:text-6xl">
-          Welcome, sign in to use PomodoroTodo
+  <div className="text-gray-800 dark:text-white">
+      <main className="container mx-auto px-6 py-12 flex flex-col items-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-center mb-8">
+          Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] font-extrabold">PomodoroTodo</span>
+        </h1>
+        <p className="text-lg md:text-xl text-center mb-12 max-w-2xl text-gray-600 dark:text-gray-300">
+          Boost your productivity with our powerful combination of Pomodoro timer and todo list management.
+        </p>
+        
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <FeatureCard 
+            icon={<Clock className="w-12 h-12 text-[#1688c5]" />}
+            title="Pomodoro Timer"
+            description="Stay focused with customizable Pomodoro sessions, short breaks, and long breaks."
+          />
+          <FeatureCard 
+            icon={<List className="w-12 h-12 text-[#1688c5]" />}
+            title="Todo Management"
+            description="Organize your tasks efficiently with our intuitive todo list feature."
+          />
+          <FeatureCard 
+            icon={<CheckCircle2 className="w-12 h-12 text-[#1688c5]" />}
+            title="Track Progress"
+            description="Monitor your productivity with total focus sessions and focus time tracking."
+          />
+          <FeatureCard 
+            icon={<BarChart className="w-12 h-12 text-[#1688c5]" />}
+            title="Analytics"
+            description="Gain insights into your productivity patterns with detailed analytics."
+          />
         </div>
-        <div className="text-4xl md:text-6xl">👋🏾</div>
-        <div className="flex flex-col items-center text-center">
-          <div className="text-lg font-bold md:text-xl">
-            Built with Next.js, tRPC, Clerk, Prisma, Tailwind CSS +more
-          </div>
-          <div>
-            By{" "}
-            <Link
-              target="_blank"
-              href="https://github.com/iamfitsum"
-              className="text-[#0ea5e9]"
-            >
-              Fitsum Mekonnen
-            </Link>
-          </div>
-        </div>
-      </div>
+        
+        <Link href="/signin">
+          <Button className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg text-lg transition-opacity">
+            Get Started Now
+          </Button>
+        </Link>
+      </main>
     </div>
   );
 }
 
 export default WelcomePage
+
+function FeatureCard({ icon, title, description }) {
+  return (
+    <div className="bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-50 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center text-center">
+      {icon}
+      <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-white">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300">{description}</p>
+    </div>
+  )
+}
