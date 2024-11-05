@@ -117,6 +117,9 @@ export default function Home() {
           name="description"
           content="A Pomodoro-Todo application built with Next.js, Clerk, Prisma, Tailwind CSS, tRPC +more"
         />
+        {/* SVG favicon for modern browsers */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* ICO fallback for older browsers */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {!isSignedIn && <WelcomePage />}
