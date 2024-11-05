@@ -53,6 +53,7 @@ export const todoRouter = createTRPCRouter({
     const result = await ctx.prisma.todo.findMany({
       where: {
         done: true,
+        authorId: ctx.userId,
         createdAt: {
           gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
           lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
@@ -90,6 +91,7 @@ export const todoRouter = createTRPCRouter({
     const result = await ctx.prisma.todo.findMany({
       where: {
         done: false,
+        authorId: ctx.userId,
         createdAt: {
           gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
           lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
