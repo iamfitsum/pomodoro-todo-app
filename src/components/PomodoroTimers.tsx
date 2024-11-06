@@ -41,7 +41,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
     timerDurations.pomodoro,
   ]);
   return (
-    <div className="flex h-screen w-full flex-col items-center">
+    <div className="flex w-full flex-col items-center">
       <Tabs
         defaultValue="pomodoro"
         className="w-full"

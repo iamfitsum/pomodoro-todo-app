@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Button } from "~/components/ui/button"
 import { CheckCircle2, Clock, List, BarChart } from "lucide-react"
 import Link from "next/link"
@@ -48,7 +49,11 @@ const WelcomePage = () => {
 
 export default WelcomePage
 
-function FeatureCard({ icon, title, description }) {
+function FeatureCard({ icon, title, description }: {
+  icon: ReactNode; 
+  title: string; 
+  description: string; 
+}) {
   return (
     <div className="bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-50 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center text-center">
       {icon}
