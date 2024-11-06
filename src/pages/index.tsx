@@ -158,9 +158,9 @@ export default function Home() {
               </Tabs>
             </div>
           </main>
-          <Footer />
         </>
       )}
+      <Footer />
     </div>
   );
 }
