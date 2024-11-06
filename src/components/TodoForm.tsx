@@ -1,4 +1,11 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays, format } from "date-fns";
+import { CalendarIcon, PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -29,23 +37,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { Calendar } from "~/components/ui/calendar";
-import { addDays, format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react";
-import { cn } from "~/utils/utils";
-import { api } from "~/utils/api";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { toast } from "~/components/ui/use-toast";
-import { useState } from "react";
+import { api } from "~/utils/api";
+import { cn } from "~/utils/utils";
 
 const todoFormSchema = z.object({
   title: z.string().min(1, {
     message: "Must be at least 1 character",
-  }).max(32,{
+  }).max(32, {
     message: "Must be less than 32 characters"
   }),
   description: z.string().optional(),
@@ -54,51 +54,51 @@ const todoFormSchema = z.object({
 });
 
 const TodoForm = () => {
-      const [openDialog, setOpenDialog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
-      const ctx = api.useContext();
+  const ctx = api.useContext();
 
-      const form = useForm<z.infer<typeof todoFormSchema>>({
-        resolver: zodResolver(todoFormSchema),
-        defaultValues: {
-          title: "",
-          description: "",
-          duedate: new Date(),
-          priority: "LOW",
-        },
+  const form = useForm<z.infer<typeof todoFormSchema>>({
+    resolver: zodResolver(todoFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      duedate: new Date(),
+      priority: "LOW",
+    },
+  });
+
+  const { mutate, isLoading: isPosting } = api.todo.create.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Todo created",
+        description: "Your todo has been created",
       });
-
-      const { mutate, isLoading: isPosting } = api.todo.create.useMutation({
-        onSuccess: () => {
-          toast({
-            title: "Todo created",
-            description: "Your todo has been created",
-          });
-          void ctx.todo.getAll.invalidate();
-          form.reset();
-          setOpenDialog(false);
-        },
-        onError: (err) => {
-          const errorMessage = err.data?.zodError?.fieldErrors.content;
-          if (errorMessage && errorMessage[0]) {
-            toast({
-              variant: "destructive",
-              title: "Todo creation failed",
-              description: errorMessage[0],
-            });
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Todo creation failed",
-              description: "Failed to create todo! Please try again later.",
-            });
-          }
-        },
-      });
-
-      function onSubmit(data: z.infer<typeof todoFormSchema>) {
-        mutate(data);
+      void ctx.todo.getAll.invalidate();
+      form.reset();
+      setOpenDialog(false);
+    },
+    onError: (err) => {
+      const errorMessage = err.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast({
+          variant: "destructive",
+          title: "Todo creation failed",
+          description: errorMessage[0],
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Todo creation failed",
+          description: "Failed to create todo! Please try again later.",
+        });
       }
+    },
+  });
+
+  function onSubmit(data: z.infer<typeof todoFormSchema>) {
+    mutate(data);
+  }
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild onClick={() => setOpenDialog(true)}>

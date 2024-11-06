@@ -1,11 +1,10 @@
+import { PauseCircle, PlayCircle, RotateCw, XCircle } from "lucide-react";
+import { useContext, useEffect } from "react";
+import TimerDial from "~/components/TimerDial";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { PauseCircle, RotateCw, XCircle } from "lucide-react";
-import { useContext, useEffect } from "react";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
-import TimerDial from "~/components/TimerDial";
-import { PlayCircle } from "lucide-react";
 
 type Props = {
   enableTimer: boolean;

@@ -1,9 +1,8 @@
 import { UserButton, useUser } from "@clerk/nextjs";
-import Link from "next/link";
-import { buttonVariants } from "./ui/button";
+import { dark } from "@clerk/themes";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { dark } from "@clerk/themes";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -11,18 +10,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { buttonVariants } from "./ui/button";
 
 const Navbar = () => {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
   const { theme, setTheme } = useTheme();
   const userButtonTheme = () => {
-    if(theme!=="light"){
+    if (theme !== "light") {
       return dark
-    }else{
+    } else {
       return undefined
     }
-  } 
-   //Returns empty div if user is not loaded
+  }
+  //Returns empty div if user is not loaded
   if (!userLoaded) return <div />;
   return (
     <div className="flex h-fit border-b border-zinc-200/10 bg-zinc-400/10 py-3">

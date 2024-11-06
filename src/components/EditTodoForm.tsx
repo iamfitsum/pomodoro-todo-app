@@ -1,10 +1,27 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays, format } from "date-fns";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { CalendarIcon, Trash2 } from "lucide-react";
+import { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "~/components/ui/use-toast";
+import * as z from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -14,6 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -26,31 +44,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { Calendar } from "~/components/ui/calendar";
 import { Switch } from "~/components/ui/switch";
-import { Badge } from "~/components/ui/badge";
-import { addDays, format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "~/utils/utils";
-import { api } from "~/utils/api";
-import { useContext, useEffect } from "react";
+import { Textarea } from "~/components/ui/textarea";
+import { toast } from "~/components/ui/use-toast";
 import TimerContext from "~/state/timer/TimerContext";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import { Trash2 } from "lucide-react";
+import { api } from "~/utils/api";
+import { cn } from "~/utils/utils";
 
 dayjs.extend(relativeTime);
 

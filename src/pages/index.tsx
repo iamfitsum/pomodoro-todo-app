@@ -2,15 +2,15 @@ import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import PomodoroTimers from "~/components/PomodoroTimers";
-import WelcomePage from "~/components/WelcomePage";
-import TodoForm from "~/components/TodoForm";
-import TodoCombobox from "~/components/TodoCombobox";
-import TodoAnalytics from "~/components/TodoAnalytics";
 import EditTodoForm from "~/components/EditTodoForm";
 import Footer from "~/components/Footer";
+import PomodoroTimers from "~/components/PomodoroTimers";
+import TodoAnalytics from "~/components/TodoAnalytics";
+import TodoCombobox from "~/components/TodoCombobox";
+import TodoForm from "~/components/TodoForm";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import WelcomePage from "~/components/WelcomePage";
 import { api } from "~/utils/api";
 
 export default function Home() {
@@ -52,7 +52,7 @@ export default function Home() {
 
   // API queries
   api.todo.getAll.useQuery();
-  
+
   const getFullTodo = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
     {

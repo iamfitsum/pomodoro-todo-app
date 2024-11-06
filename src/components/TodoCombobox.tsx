@@ -1,7 +1,6 @@
-import React, { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import React, { useState } from "react";
 
-import { cn } from "~/utils/utils";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -15,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { cn } from "~/utils/utils";
 
 import { api } from "~/utils/api";
 
@@ -36,9 +36,9 @@ const TodoCombobox = ({ selectedTodo, setSelectedTodo }: Props) => {
 
   const [todos, setTodos] = useState<
     | {
-        value: string;
-        label: string;
-      }[]
+      value: string;
+      label: string;
+    }[]
     | null
   >(null);
 

@@ -1,5 +1,5 @@
-import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
 import { useContext, useEffect } from "react";
+import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
 
 export interface ITimerDial {
   /**
