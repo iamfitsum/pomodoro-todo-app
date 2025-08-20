@@ -1,14 +1,18 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default authMiddleware({
-  publicRoutes: ["/"],
-  // Clerk v6 requires these configurations
-  beforeAuth: (req) => {
-    // Optional: Add any pre-auth logic here
-  },
-  afterAuth: (auth, req) => {
-    // Optional: Add any post-auth logic here
-  },
+const isProtectedRoute = createRouteMatcher([
+  "/((?!.*\\..*|_next).*)",
+  "/",
+  "/(api|trpc)(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    const session = await auth();
+    if (!session.userId) {
+      return Response.redirect(new URL("/sign-in", req.url));
+    }
+  }
 });
 
 export const config = {
