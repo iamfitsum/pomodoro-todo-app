@@ -1,17 +1,21 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-const isProtectedRoute = createRouteMatcher([
-  "/((?!.*\\..*|_next).*)",
-  "/",
-  "/(api|trpc)(.*)",
-]);
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    const session = await auth();
-    if (!session.userId) {
-      return Response.redirect(new URL("/sign-in", req.url));
-    }
+  const { pathname } = req.nextUrl;
+
+  // Public routes - no authentication required
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up")
+  ) {
+    return;
+  }
+
+  // Protected routes - require authentication
+  const session = await auth();
+  if (!session.userId) {
+    return Response.redirect(new URL("/sign-in", req.url));
   }
 });
 
