@@ -20,10 +20,8 @@ import { prisma } from "~/server/db";
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
-  const {req} = opts;
-  const sesh = getAuth(req);
-
-  const userId = sesh.userId;
+  const { req } = opts;
+  const { userId } = getAuth(req);
 
   return {
     prisma,

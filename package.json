@@ -10,8 +10,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@clerk/nextjs": "^4.31.6",
-    "@clerk/themes": "^1.7.19",
+    "@clerk/nextjs": "^6.31.3",
+    "@clerk/themes": "^2.4.12",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^4.16.2",
     "@radix-ui/react-alert-dialog": "^1.1.2",
