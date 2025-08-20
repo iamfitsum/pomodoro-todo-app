@@ -16,7 +16,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             colorPrimary: "#0ea5e9",
           },
         }}
-        {...pageProps}
       >
         <TimerProvider>
           <Navbar />

@@ -15,13 +15,15 @@ import { buttonVariants } from "./ui/button";
 const Navbar = () => {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
   const { theme, setTheme } = useTheme();
+
   const userButtonTheme = () => {
     if (theme !== "light") {
-      return dark
+      return dark;
     } else {
-      return undefined
+      return undefined;
     }
-  }
+  };
+
   //Returns empty div if user is not loaded
   if (!userLoaded) return <div />;
   return (
