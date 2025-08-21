@@ -47,7 +47,7 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
       {fullTodo.id !== "" && (
         <Card className="mt-2">
           <CardHeader>
-            <CardDescription className="text-[#0ea5e9] dark:text-[#0ea5e9]">
+            <CardDescription className="text-[#0ea5e9] dark:text-[#0ea5e9] break-words leading-snug">
               {fullTodo.description}
             </CardDescription>
           </CardHeader>

@@ -111,7 +111,7 @@ export default function Home() {
       ) : (
         <>
           <main className="flex flex-1 flex-col md:flex-row">
-            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:max-w-lg md:p-10">
+            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10">
               <div className="flex space-x-2">
                 <TodoForm />
                 <TodoCombobox
