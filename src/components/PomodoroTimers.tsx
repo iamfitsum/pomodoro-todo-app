@@ -124,6 +124,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.pomodoro);
               setActiveTimer(TimerVariants.POMODORO);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             pomodoro
@@ -134,6 +135,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.shortbreak);
               setActiveTimer(TimerVariants.SHORT);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             short break
@@ -144,6 +146,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.longbreak);
               setActiveTimer(TimerVariants.LONG);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             long break
@@ -241,6 +244,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
+                  setDeadlineMs(null);
                 }}
               >
                 <XCircle size={30} color="#0ea5e9" />
@@ -249,7 +253,17 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 variant="ghost"
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
-                onClick={() => setPaused(!paused)}
+                onClick={() => {
+                  setPaused((p) => {
+                    const next = !p;
+                    if (next) {
+                      setDeadlineMs(null);
+                    } else {
+                      setDeadlineMs(Date.now() + timeRemaining * 1000);
+                    }
+                    return next;
+                  });
+                }}
               >
                 {paused ? (
                   <PlayCircle size={30} color="#0ea5e9" />
@@ -264,6 +278,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
+                  setDeadlineMs(Date.now() + timeDuration * 1000);
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />
@@ -295,6 +310,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
+                  setDeadlineMs(null);
                 }}
               >
                 <XCircle size={30} color="#0ea5e9" />
@@ -303,7 +319,17 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 variant="ghost"
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
-                onClick={() => setPaused(!paused)}
+                onClick={() => {
+                  setPaused((p) => {
+                    const next = !p;
+                    if (next) {
+                      setDeadlineMs(null);
+                    } else {
+                      setDeadlineMs(Date.now() + timeRemaining * 1000);
+                    }
+                    return next;
+                  });
+                }}
               >
                 {paused ? (
                   <PlayCircle size={30} color="#0ea5e9" />
@@ -318,6 +344,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
+                  setDeadlineMs(Date.now() + timeDuration * 1000);
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />

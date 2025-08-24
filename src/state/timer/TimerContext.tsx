@@ -71,7 +71,7 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         completedTomatoes: defaultValue.completedTomatoes,
         timerDurations: defaultValue.timerDurations,
         timeRemaining: defaultValue.timerDurations[defaultValue.activeTimer],
-        deadlineMs: defaultValue.deadlineMs as number | null,
+        deadlineMs: defaultValue.deadlineMs,
       };
     }
     try {
@@ -84,7 +84,7 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
           completedTomatoes: defaultValue.completedTomatoes,
           timerDurations: defaultValue.timerDurations,
           timeRemaining: defaultValue.timerDurations[defaultValue.activeTimer],
-          deadlineMs: defaultValue.deadlineMs as number | null,
+          deadlineMs: defaultValue.deadlineMs,
         };
       }
       const saved = JSON.parse(raw) as Partial<ITimerContext> & {
@@ -118,7 +118,7 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         completedTomatoes: defaultValue.completedTomatoes,
         timerDurations: defaultValue.timerDurations,
         timeRemaining: defaultValue.timerDurations[defaultValue.activeTimer],
-        deadlineMs: defaultValue.deadlineMs as number | null,
+        deadlineMs: defaultValue.deadlineMs,
       };
     }
   };
