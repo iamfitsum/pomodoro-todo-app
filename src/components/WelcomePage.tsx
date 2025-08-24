@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 
 const WelcomePage = () => {
   return (
-    <div className="text-gray-800 dark:text-white">
+    <div className="flex-1 text-gray-800 dark:text-white">
       <main className="container mx-auto px-6 py-12 flex flex-col items-center">
         <h1 className="text-4xl md:text-5xl font-bold text-center mb-8">
           Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] font-extrabold">PomodoroTodo</span>
@@ -37,7 +37,7 @@ const WelcomePage = () => {
           />
         </div>
 
-        <Link href="/signin">
+        <Link href="/sign-in">
           <Button className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg text-lg transition-opacity">
             Get Started Now
           </Button>

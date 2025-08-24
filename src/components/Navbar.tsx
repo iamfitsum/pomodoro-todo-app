@@ -27,7 +27,7 @@ const Navbar = () => {
   //Returns empty div if user is not loaded
   if (!userLoaded) return <div />;
   return (
-    <div className="flex h-fit border-b border-zinc-200/10 bg-zinc-400/10 py-3">
+    <div className="sticky top-0 z-40 flex h-fit border-b border-zinc-200/10 bg-zinc-400/10/80 backdrop-blur supports-[backdrop-filter]:bg-zinc-400/10 py-3">
       <div className="container mx-auto flex h-full max-w-7xl items-center justify-between gap-2">
         {/* logo */}
         <Link href="/" className="flex items-center gap-2">
