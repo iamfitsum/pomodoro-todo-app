@@ -1,10 +1,11 @@
-import { PauseCircle, PlayCircle, RotateCw, XCircle } from "lucide-react";
-import { useContext, useEffect } from "react";
+import { Info, PauseCircle, PlayCircle, RotateCw, XCircle } from "lucide-react";
+import { useContext, useEffect, useRef } from "react";
 import TimerDial from "~/components/TimerDial";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
+import { computeResumeDeadlineMs } from "~/utils/utils";
 
 type Props = {
   enableTimer: boolean;
@@ -23,22 +24,93 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
     timerDurations,
     paused,
     setPaused,
+    setDeadlineMs,
   } = useContext(TimerContext);
 
   const timeDuration = timerDurations[activeTimer];
   const secTimeRemaining = timeRemaining;
 
+  const prevSelectedRef = useRef<typeof selectedTodo | null>(null);
   useEffect(() => {
-    setTimeRemaining(timerDurations.pomodoro);
-    setActiveTimer(TimerVariants.POMODORO);
-    setPaused(true);
+    // Skip first run to avoid resetting after restoring from localStorage
+    if (prevSelectedRef.current === null) {
+      prevSelectedRef.current = selectedTodo;
+      return;
+    }
+    // If we are transitioning from empty -> persisted value on first hydration, don't reset
+    if (
+      prevSelectedRef.current.value === "" &&
+      selectedTodo.value !== ""
+    ) {
+      prevSelectedRef.current = selectedTodo;
+      return;
+    }
+    if (prevSelectedRef.current.value !== selectedTodo.value) {
+      setTimeRemaining(timerDurations.pomodoro);
+      setActiveTimer(TimerVariants.POMODORO);
+      setPaused(true);
+      setDeadlineMs(null);
+      prevSelectedRef.current = selectedTodo;
+    }
   }, [
     selectedTodo,
     setTimeRemaining,
     setActiveTimer,
     setPaused,
     timerDurations.pomodoro,
+    setDeadlineMs,
   ]);
+
+  // If we restored an unpaused timer with deadlineMs, ensure play resumes on mount
+  useEffect(() => {
+    if (!paused && timeRemaining > 0) {
+      // ensure deadline exists when resuming from legacy state
+      setDeadlineMs((d) => d ?? Date.now() + timeRemaining * 1000);
+    }
+    // run once after mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!enableTimer) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        setPaused((p) => !p);
+      }
+      if (e.key.toLowerCase() === "s") {
+        setTimeRemaining(timeDuration);
+        setPaused(true);
+        setDeadlineMs(null);
+      }
+      if (e.key.toLowerCase() === "r") {
+        setTimeRemaining(timeDuration);
+        setPaused(false);
+        setDeadlineMs(computeResumeDeadlineMs(timeDuration));
+      }
+      if (e.key === "1") {
+        setTimeRemaining(timerDurations.pomodoro);
+        setActiveTimer(TimerVariants.POMODORO);
+        setPaused(true);
+        setDeadlineMs(null);
+      }
+      if (e.key === "2") {
+        setTimeRemaining(timerDurations.shortbreak);
+        setActiveTimer(TimerVariants.SHORT);
+        setPaused(true);
+        setDeadlineMs(null);
+      }
+      if (e.key === "3") {
+        setTimeRemaining(timerDurations.longbreak);
+        setActiveTimer(TimerVariants.LONG);
+        setPaused(true);
+        setDeadlineMs(null);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [enableTimer, setPaused, setTimeRemaining, timeDuration, timerDurations, setActiveTimer, setDeadlineMs]);
+
   return (
     <div className="flex w-full flex-col items-center">
       <Tabs
@@ -53,6 +125,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.pomodoro);
               setActiveTimer(TimerVariants.POMODORO);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             pomodoro
@@ -63,6 +136,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.shortbreak);
               setActiveTimer(TimerVariants.SHORT);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             short break
@@ -73,6 +147,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setTimeRemaining(timerDurations.longbreak);
               setActiveTimer(TimerVariants.LONG);
               setPaused(true);
+              setDeadlineMs(null);
             }}
           >
             long break
@@ -80,7 +155,13 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
         </TabsList>
         <TabsContent value="pomodoro">
           <Card className="bg-muted">
-            <CardContent className="flex justify-center space-y-2">
+            <CardContent className="flex flex-col items-center gap-2 pt-4">
+              {!enableTimer && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Info size={16} />
+                  <span>Select a todo to enable timer controls</span>
+                </div>
+              )}
               <div className="my-4">
                 <TimerDial
                   timeRemaining={secTimeRemaining}
@@ -88,7 +169,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center space-x-20 ">
+            <CardFooter className="flex justify-center gap-10 pb-6">
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
@@ -96,6 +177,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
+                  setDeadlineMs(null);
                 }}
               >
                 <XCircle size={30} color="#0ea5e9" />
@@ -104,7 +186,14 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 variant="ghost"
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
-                onClick={() => setPaused(!paused)}
+                onClick={() => {
+                  setPaused((p) => {
+                    const next = !p;
+                    if (next) setDeadlineMs(null);
+                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
+                    return next;
+                  });
+                }}
               >
                 {paused ? (
                   <PlayCircle size={30} color="#0ea5e9" />
@@ -119,6 +208,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
+                  setDeadlineMs(computeResumeDeadlineMs(timeDuration));
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />
@@ -128,7 +218,13 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
         </TabsContent>
         <TabsContent value="shortbreak">
           <Card className="bg-muted">
-            <CardContent className="flex justify-center space-y-2">
+            <CardContent className="flex flex-col items-center gap-2 pt-4">
+              {!enableTimer && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Info size={16} />
+                  <span>Select a todo to enable timer controls</span>
+                </div>
+              )}
               <div className="my-4">
                 <TimerDial
                   timeRemaining={secTimeRemaining}
@@ -136,7 +232,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center space-x-20 ">
+            <CardFooter className="flex justify-center gap-10 pb-6">
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
@@ -144,6 +240,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
+                  setDeadlineMs(null);
                 }}
               >
                 <XCircle size={30} color="#0ea5e9" />
@@ -152,7 +249,14 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 variant="ghost"
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
-                onClick={() => setPaused(!paused)}
+                onClick={() => {
+                  setPaused((p) => {
+                    const next = !p;
+                    if (next) setDeadlineMs(null);
+                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
+                    return next;
+                  });
+                }}
               >
                 {paused ? (
                   <PlayCircle size={30} color="#0ea5e9" />
@@ -167,6 +271,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
+                  setDeadlineMs(computeResumeDeadlineMs(timeDuration));
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />
@@ -176,7 +281,13 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
         </TabsContent>
         <TabsContent value="longbreak">
           <Card className="bg-muted">
-            <CardContent className="flex justify-center space-y-2">
+            <CardContent className="flex flex-col items-center gap-2 pt-4">
+              {!enableTimer && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Info size={16} />
+                  <span>Select a todo to enable timer controls</span>
+                </div>
+              )}
               <div className="my-4">
                 <TimerDial
                   timeRemaining={secTimeRemaining}
@@ -184,7 +295,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center space-x-20 ">
+            <CardFooter className="flex justify-center gap-10 pb-6">
               <Button
                 variant="ghost"
                 className="w-fit rounded-lg"
@@ -192,6 +303,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(true);
+                  setDeadlineMs(null);
                 }}
               >
                 <XCircle size={30} color="#0ea5e9" />
@@ -200,7 +312,17 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 variant="ghost"
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
-                onClick={() => setPaused(!paused)}
+                onClick={() => {
+                  setPaused((p) => {
+                    const next = !p;
+                    if (next) {
+                      setDeadlineMs(null);
+                    } else {
+                      setDeadlineMs(Date.now() + timeRemaining * 1000);
+                    }
+                    return next;
+                  });
+                }}
               >
                 {paused ? (
                   <PlayCircle size={30} color="#0ea5e9" />
@@ -215,6 +337,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
+                  setDeadlineMs(Date.now() + timeDuration * 1000);
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />
