@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
+import { computeResumeDeadlineMs } from "~/utils/utils";
 
 type Props = {
   enableTimer: boolean;
@@ -85,7 +86,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
       if (e.key.toLowerCase() === "r") {
         setTimeRemaining(timeDuration);
         setPaused(false);
-        setDeadlineMs(Date.now() + timeDuration * 1000);
+        setDeadlineMs(computeResumeDeadlineMs(timeDuration));
       }
       if (e.key === "1") {
         setTimeRemaining(timerDurations.pomodoro);
@@ -188,13 +189,8 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setPaused((p) => {
                     const next = !p;
-                    if (next) {
-                      // pausing
-                      setDeadlineMs(null);
-                    } else {
-                      // resuming
-                      setDeadlineMs(Date.now() + timeRemaining * 1000);
-                    }
+                    if (next) setDeadlineMs(null);
+                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
                     return next;
                   });
                 }}
@@ -212,7 +208,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
-                  setDeadlineMs(Date.now() + timeDuration * 1000);
+                  setDeadlineMs(computeResumeDeadlineMs(timeDuration));
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />
@@ -256,11 +252,8 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setPaused((p) => {
                     const next = !p;
-                    if (next) {
-                      setDeadlineMs(null);
-                    } else {
-                      setDeadlineMs(Date.now() + timeRemaining * 1000);
-                    }
+                    if (next) setDeadlineMs(null);
+                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
                     return next;
                   });
                 }}
@@ -278,7 +271,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 onClick={() => {
                   setTimeRemaining(timeDuration);
                   setPaused(false);
-                  setDeadlineMs(Date.now() + timeDuration * 1000);
+                  setDeadlineMs(computeResumeDeadlineMs(timeDuration));
                 }}
               >
                 <RotateCw size={25} color="#0ea5e9" />

@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
+import { calculateRemainingTimeSeconds } from "~/utils/utils";
 
 export interface ITimerDial {
   timeRemaining: number; // seconds
@@ -62,8 +63,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     if (paused || isFinished) return;
     const intervalId = setInterval(() => {
       if (deadlineMs && deadlineMs > Date.now()) {
-        const rem = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
-        setTimeRemaining(rem);
+        setTimeRemaining(calculateRemainingTimeSeconds(deadlineMs));
       } else {
         setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
       }

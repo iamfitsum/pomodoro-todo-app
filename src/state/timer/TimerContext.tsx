@@ -1,4 +1,5 @@
 import { createContext, type PropsWithChildren, useEffect, useState } from "react";
+import { calculateRemainingTimeSeconds, computeResumeDeadlineMs } from "~/utils/utils";
 
 export enum TimerVariants {
   POMODORO = "pomodoro",
@@ -100,11 +101,11 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
       let deadlineMs = typeof saved.deadlineMs === "number" ? saved.deadlineMs : null;
       let timeRemaining: number;
       if (deadlineMs && !paused) {
-        timeRemaining = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
+        timeRemaining = calculateRemainingTimeSeconds(deadlineMs);
       } else if (typeof saved.timeRemaining === "number") {
         timeRemaining = saved.timeRemaining;
         if (!paused) {
-          deadlineMs = Date.now() + saved.timeRemaining * 1000;
+          deadlineMs = computeResumeDeadlineMs(saved.timeRemaining);
         }
       } else {
         timeRemaining = timerDurations[activeTimer];
