@@ -1,34 +1,14 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import TimerContext, { TimerVariants } from "~/state/timer/TimerContext";
 
 export interface ITimerDial {
-  /**
-   * Time left in seconds
-   */
-  timeRemaining: number;
-  /**
-   * Full time duration in seconds
-   */
-  timeDuration: number;
+  timeRemaining: number; // seconds
+  timeDuration: number; // seconds
 }
 
-/**
- * How many seconds in a minute
- */
 const ONE_MINUTE = 60;
-/**
- * How many milliseconds in a second
- */
 const ONE_SECOND = 1000;
-
-const convertMinutesToSeconds = (minutes: number): number =>
-  +(minutes * ONE_MINUTE).toFixed(2);
-
-const convertSecondsToMinutes = (seconds: number): number =>
-  +(seconds / ONE_MINUTE).toFixed(2);
-
-const secondsToMinutesString = (seconds: number) =>
-  parseInt(`${seconds}`).toString().padStart(2, "0");
+const pad2 = (n: number) => String(n).padStart(2, "0");
 
 const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
   const {
@@ -40,68 +20,112 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     setIsPomodoroFinished,
     completedTomatoes,
     setCompletedTomatoes,
+    timerDurations,
+    deadlineMs,
+    setDeadlineMs,
   } = useContext(TimerContext);
 
-  const secTimeDuration = convertMinutesToSeconds(timeDuration);
-  const secTimeRemaining = convertMinutesToSeconds(timeRemaining);
+  const secTimeDuration = timeDuration;
+  const secTimeRemaining = timeRemaining;
 
   const circleLength = (secTimeDuration - secTimeRemaining) / secTimeDuration;
-  const minutesTime = secondsToMinutesString(secTimeRemaining / ONE_MINUTE);
-  const secondsTime = secondsToMinutesString(secTimeRemaining % ONE_MINUTE);
+  const minutesTime = pad2(Math.floor(secTimeRemaining / ONE_MINUTE));
+  const secondsTime = pad2(secTimeRemaining % ONE_MINUTE);
   const timeDisplay = `${minutesTime}:${secondsTime}`;
 
   const isFinished = secTimeRemaining <= 0;
 
+  // Web Worker tick fallback for background tabs
+  const workerRef = useRef<Worker | null>(null);
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!paused && !isFinished) {
-        const minutesRemaining = convertSecondsToMinutes(secTimeRemaining - 1);
-        setTimeRemaining(minutesRemaining);
-      } else if (isFinished) {
-        // play audio on timeout
-        const audio = new Audio("/audio/doorbell.mp3");
-        void audio.play();
-        // force timeout to stop
-        clearInterval(intervalId);
-
-        if (activeTimer === TimerVariants.POMODORO) {
-          setIsPomodoroFinished(true);
-          if (completedTomatoes === 3) {
-            setCompletedTomatoes(0);
-            setActiveTimer(TimerVariants.LONG);
-            setTimeRemaining(15);
-            setPaused(true);
-          } else {
-            setCompletedTomatoes(completedTomatoes + 1);
-            setActiveTimer(TimerVariants.SHORT);
-            setTimeRemaining(5);
-            setPaused(true);
-          }
-        } else if (activeTimer === TimerVariants.SHORT) {
-          setActiveTimer(TimerVariants.POMODORO);
-          setTimeRemaining(25);
-          setPaused(true);
-        } else if (activeTimer === TimerVariants.LONG) {
-          setActiveTimer(TimerVariants.POMODORO);
-          setTimeRemaining(25);
-          setPaused(true);
+    if (typeof window === "undefined") return;
+    try {
+      const w = new Worker("/workers/timerWorker.js");
+      workerRef.current = w;
+      w.onmessage = (e: MessageEvent) => {
+        const { type, remaining } = e.data || {};
+        if (type === "tick" && typeof remaining === "number") {
+          setTimeRemaining(remaining);
         }
+      };
+      return () => {
+        w.postMessage({ type: "stop" });
+        w.terminate();
+        workerRef.current = null;
+      };
+    } catch {
+      // worker may fail in some envs; ignore
+    }
+  }, [setTimeRemaining]);
+
+  useEffect(() => {
+    if (paused || isFinished) return;
+    const intervalId = setInterval(() => {
+      if (deadlineMs && deadlineMs > Date.now()) {
+        const rem = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
+        setTimeRemaining(rem);
+      } else {
+        setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
       }
     }, ONE_SECOND);
-
     return () => clearInterval(intervalId);
+  }, [paused, isFinished, deadlineMs, setTimeRemaining]);
+
+  useEffect(() => {
+    if (!isFinished) return;
+    const audio = new Audio("/audio/doorbell.mp3");
+    void audio.play();
+
+    if (activeTimer === TimerVariants.POMODORO) {
+      setIsPomodoroFinished(true);
+      const next = completedTomatoes === 3 ? TimerVariants.LONG : TimerVariants.SHORT;
+      const nextDuration = timerDurations[next];
+      setCompletedTomatoes(next === TimerVariants.LONG ? 0 : completedTomatoes + 1);
+      setActiveTimer(next);
+      setTimeRemaining(nextDuration);
+      setDeadlineMs(null);
+      setPaused(true);
+    } else {
+      setActiveTimer(TimerVariants.POMODORO);
+      setTimeRemaining(timerDurations.pomodoro);
+      setDeadlineMs(null);
+      setPaused(true);
+    }
   }, [
-    paused,
     isFinished,
-    secTimeRemaining,
-    setTimeRemaining,
     activeTimer,
-    setActiveTimer,
-    setPaused,
+    timerDurations,
     completedTomatoes,
     setCompletedTomatoes,
+    setActiveTimer,
+    setTimeRemaining,
+    setPaused,
     setIsPomodoroFinished,
+    setDeadlineMs,
   ]);
+
+  // Keep worker in sync with deadline
+  useEffect(() => {
+    const w = workerRef.current;
+    if (!w) return;
+    if (!paused && deadlineMs) {
+      w.postMessage({ type: "set-deadline", payload: deadlineMs });
+    } else {
+      w.postMessage({ type: "stop" });
+    }
+  }, [paused, deadlineMs]);
+
+  // Ensure immediate recompute on tab visibility change
+  useEffect(() => {
+    const onVis = () => {
+      if (!paused && deadlineMs) {
+        const rem = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
+        setTimeRemaining(rem);
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [paused, deadlineMs, setTimeRemaining]);
 
   return (
     <div className="timer h-[355px] w-[355px] md:h-96 md:w-96">

@@ -15,6 +15,7 @@ import { api } from "~/utils/api";
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const [homeTab, setHomeTab] = useState<"task" | "analytics">("task");
   const [enableTimer, setEnableTimer] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<{
     value: string;
@@ -70,7 +71,10 @@ export default function Home() {
         name: analytics.name.substring(0, 3),
         total: analytics.total,
       }));
-      setDoneTodosByMonth([...new Set(doneTodosByMonthData)]);
+      const uniqueByName = Array.from(
+        new Map(doneTodosByMonthData.map((d) => [d.name, d])).values()
+      );
+      setDoneTodosByMonth(uniqueByName);
     },
   });
 
@@ -80,7 +84,10 @@ export default function Home() {
         name: analytics.name.substring(0, 3),
         total: analytics.total,
       }));
-      setUndoneTodosByMonth([...new Set(undoneTodosByMonthData)]);
+      const uniqueByName = Array.from(
+        new Map(undoneTodosByMonthData.map((d) => [d.name, d])).values()
+      );
+      setUndoneTodosByMonth(uniqueByName);
     },
   });
 
@@ -90,7 +97,23 @@ export default function Home() {
     } else {
       setEnableTimer(false);
     }
-  }, [selectedTodo, getFullTodo, fullTodo.done]);
+  }, [selectedTodo.value, fullTodo.done]);
+
+  // Persist selected tab across visits
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem("homeTab");
+    if (saved === "task" || saved === "analytics") {
+      setHomeTab(saved);
+    }
+    const savedTodo = window.localStorage.getItem("selectedTodo");
+    if (savedTodo) {
+      try {
+        const parsed = JSON.parse(savedTodo) as { value: string; label: string };
+        setSelectedTodo(parsed);
+      } catch { }
+    }
+  }, []);
 
   if (!userLoaded) return <div />;
 
@@ -110,20 +133,27 @@ export default function Home() {
         <WelcomePage />
       ) : (
         <>
-          <main className="flex flex-1 flex-col md:flex-row">
-            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10">
+          <main className="mx-auto flex w-full max-w-screen-2xl 2xl:max-w-none flex-1 flex-col gap-4 p-2 md:flex-row md:p-4">
+            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10 md:rounded-lg md:sticky md:top-16 md:h-[calc(100vh-6rem)] overflow-y-auto border-r border-white/10">
               <div className="flex space-x-2">
                 <TodoForm />
                 <TodoCombobox
                   selectedTodo={selectedTodo}
-                  setSelectedTodo={setSelectedTodo}
+                  setSelectedTodo={(v) => {
+                    setSelectedTodo(v);
+                    if (typeof window !== "undefined") {
+                      try {
+                        window.localStorage.setItem("selectedTodo", JSON.stringify(v));
+                      } catch { }
+                    }
+                  }}
                 />
               </div>
               <TodoAnalytics fullTodo={fullTodo} />
             </div>
 
-            <div className="flex-1 p-2">
-              <Tabs defaultValue="task" className="w-full">
+            <div className="flex-1 p-2 md:p-4">
+              <Tabs value={homeTab} onValueChange={(v) => { setHomeTab(v as typeof homeTab); if (typeof window !== "undefined") window.localStorage.setItem("homeTab", v); }} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="task">Task</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
