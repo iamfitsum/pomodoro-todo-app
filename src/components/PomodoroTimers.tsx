@@ -24,6 +24,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
     timerDurations,
     paused,
     setPaused,
+    deadlineMs,
     setDeadlineMs,
   } = useContext(TimerContext);
 
@@ -65,7 +66,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
   useEffect(() => {
     if (!paused && timeRemaining > 0) {
       // ensure deadline exists when resuming from legacy state
-      setDeadlineMs((d) => d ?? Date.now() + timeRemaining * 1000);
+      setDeadlineMs(deadlineMs ?? Date.now() + timeRemaining * 1000);
     }
     // run once after mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,7 +77,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
       if (!enableTimer) return;
       if (e.code === "Space") {
         e.preventDefault();
-        setPaused((p) => !p);
+        setPaused(!paused);
       }
       if (e.key.toLowerCase() === "s") {
         setTimeRemaining(timeDuration);
@@ -109,7 +110,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [enableTimer, setPaused, setTimeRemaining, timeDuration, timerDurations, setActiveTimer, setDeadlineMs]);
+  }, [enableTimer, paused, setPaused, setTimeRemaining, timeDuration, timerDurations, setActiveTimer, setDeadlineMs]);
 
   return (
     <div className="flex w-full flex-col items-center">
@@ -187,12 +188,10 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
                 onClick={() => {
-                  setPaused((p) => {
-                    const next = !p;
-                    if (next) setDeadlineMs(null);
-                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
-                    return next;
-                  });
+                  const next = !paused;
+                  setPaused(next);
+                  if (next) setDeadlineMs(null);
+                  else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
                 }}
               >
                 {paused ? (
@@ -250,12 +249,10 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
                 onClick={() => {
-                  setPaused((p) => {
-                    const next = !p;
-                    if (next) setDeadlineMs(null);
-                    else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
-                    return next;
-                  });
+                  const next = !paused;
+                  setPaused(next);
+                  if (next) setDeadlineMs(null);
+                  else setDeadlineMs(computeResumeDeadlineMs(timeRemaining));
                 }}
               >
                 {paused ? (
@@ -313,15 +310,13 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
                 className="w-fit rounded-lg"
                 disabled={!enableTimer}
                 onClick={() => {
-                  setPaused((p) => {
-                    const next = !p;
-                    if (next) {
-                      setDeadlineMs(null);
-                    } else {
-                      setDeadlineMs(Date.now() + timeRemaining * 1000);
-                    }
-                    return next;
-                  });
+                  const next = !paused;
+                  setPaused(next);
+                  if (next) {
+                    setDeadlineMs(null);
+                  } else {
+                    setDeadlineMs(Date.now() + timeRemaining * 1000);
+                  }
                 }}
               >
                 {paused ? (

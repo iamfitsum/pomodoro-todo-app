@@ -65,11 +65,11 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
       if (deadlineMs && deadlineMs > Date.now()) {
         setTimeRemaining(calculateRemainingTimeSeconds(deadlineMs));
       } else {
-        setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+        setTimeRemaining(secTimeRemaining > 0 ? secTimeRemaining - 1 : 0);
       }
     }, ONE_SECOND);
     return () => clearInterval(intervalId);
-  }, [paused, isFinished, deadlineMs, setTimeRemaining]);
+  }, [paused, isFinished, deadlineMs, secTimeRemaining, setTimeRemaining]);
 
   useEffect(() => {
     if (!isFinished) return;
