@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { toast } from "./ui/use-toast";
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -27,8 +28,10 @@ const InstallPWAButton = () => {
             const choice = await deferredPrompt.userChoice;
             if (choice?.outcome === "accepted") {
                 setIsVisible(false);
-            } else {
-                setIsVisible(true);
+                toast({
+                    title: "App installed successfully",
+                    description: "You can now access the app from your home screen.",
+                });
             }
         } finally {
             setDeferredPrompt(null);
@@ -44,4 +47,3 @@ const InstallPWAButton = () => {
 };
 
 export default InstallPWAButton;
-
