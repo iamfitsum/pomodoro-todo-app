@@ -22,10 +22,14 @@ const InstallPWAButton = () => {
 
     const onInstall = async () => {
         if (!deferredPrompt) return;
-        setIsVisible(false);
         await deferredPrompt.prompt();
         try {
-            await deferredPrompt.userChoice;
+            const choice = await deferredPrompt.userChoice;
+            if (choice?.outcome === "accepted") {
+                setIsVisible(false);
+            } else {
+                setIsVisible(true);
+            }
         } finally {
             setDeferredPrompt(null);
         }
