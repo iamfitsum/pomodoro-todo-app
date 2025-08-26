@@ -33,4 +33,41 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  runtimeCaching: [
+    // Cache Google Fonts stylesheets with a stale-while-revalidate strategy
+    {
+      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*$/,
+      handler: "StaleWhileRevalidate",
+      options: {
+        cacheName: "google-fonts-stylesheets",
+      },
+    },
+    // Cache the underlying font files with a cache-first strategy for 1 year
+    {
+      urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*$/,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "google-fonts-webfonts",
+        expiration: { maxEntries: 16, maxAgeSeconds: 60 * 60 * 24 * 365 },
+      },
+    },
+    // Cache images from same-origin and remote with a stale-while-revalidate strategy
+    {
+      urlPattern: ({ request, sameOrigin }) =>
+        request.destination === "image" && sameOrigin,
+      handler: "StaleWhileRevalidate",
+      options: { cacheName: "images" },
+    },
+    // API calls to same-origin: network-first with timeout and fallbacks
+    {
+      urlPattern: ({ url, sameOrigin }) =>
+        sameOrigin && url.pathname.startsWith("/api"),
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "api",
+        networkTimeoutSeconds: 3,
+        expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 },
+      },
+    },
+  ],
 })(baseConfig);
