@@ -24,17 +24,16 @@ const InstallPWAButton = () => {
     const onInstall = async () => {
         if (!deferredPrompt) return;
         await deferredPrompt.prompt();
-        try {
-            const choice = await deferredPrompt.userChoice;
-            if (choice?.outcome === "accepted") {
-                setIsVisible(false);
-                toast({
-                    title: "App installed successfully",
-                    description: "You can now access the app from your home screen.",
-                });
-            }
-        } finally {
+        const choice = await deferredPrompt.userChoice;
+        if (choice?.outcome === "accepted") {
+            setIsVisible(false);
             setDeferredPrompt(null);
+            toast({
+                title: "App installed successfully",
+                description: "You can now access the app from your home screen.",
+            });
+        } else {
+            setIsVisible(true);
         }
     };
 
