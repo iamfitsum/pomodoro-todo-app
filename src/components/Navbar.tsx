@@ -4,6 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import InstallPWAButton from "~/components/InstallPWAButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,7 @@ const Navbar = () => {
 
         {/* actions */}
         <div className="flex items-center space-x-2">
+          <InstallPWAButton />
           {isSignedIn ? (
             <UserButton
               afterSignOutUrl="/"

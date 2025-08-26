@@ -4,8 +4,10 @@
  */
 await import("./src/env.mjs");
 
+import withPWA from "next-pwa";
+
 /** @type {import("next").NextConfig} */
-const config = {
+const baseConfig = {
   reactStrictMode: true,
 
   /**
@@ -26,4 +28,9 @@ const config = {
   },
 };
 
-export default config;
+export default withPWA({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+})(baseConfig);
