@@ -45,4 +45,3 @@ const InstallPWAButton = () => {
 
 export default InstallPWAButton;
 
-
