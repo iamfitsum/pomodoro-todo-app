@@ -40,3 +40,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# pwa (generated at build time)
+/public/sw.js
+/public/workbox-*.js
