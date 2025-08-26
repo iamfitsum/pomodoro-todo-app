@@ -4,6 +4,7 @@
  */
 await import("./src/env.mjs");
 
+// @ts-expect-error next-pwa has no types
 import withPWA from "next-pwa";
 
 /** @type {import("next").NextConfig} */
@@ -53,15 +54,18 @@ export default withPWA({
     },
     // Cache images from same-origin and remote with a stale-while-revalidate strategy
     {
-      urlPattern: ({ request, sameOrigin }) =>
-        request.destination === "image" && sameOrigin,
+      // Cache images when same-origin
+      /** @param {{request: Request, sameOrigin: boolean}} ctx */
+      urlPattern: (ctx) =>
+        ctx.request.destination === "image" && ctx.sameOrigin,
       handler: "StaleWhileRevalidate",
       options: { cacheName: "images" },
     },
     // API calls to same-origin: network-first with timeout and fallbacks
     {
-      urlPattern: ({ url, sameOrigin }) =>
-        sameOrigin && url.pathname.startsWith("/api"),
+      /** @param {{url: URL, sameOrigin: boolean}} ctx */
+      urlPattern: (ctx) =>
+        ctx.sameOrigin && ctx.url.pathname.startsWith("/api"),
       handler: "NetworkFirst",
       options: {
         cacheName: "api",
