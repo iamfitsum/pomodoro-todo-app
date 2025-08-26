@@ -26,16 +26,13 @@ const InstallPWAButton = () => {
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice?.outcome === "accepted") {
-            setIsVisible(false);
-            setDeferredPrompt(null);
             toast({
                 title: "App installed successfully",
                 description: "You can now access the app from your home screen.",
             });
-        } else {
-            setIsVisible(false);
-            setDeferredPrompt(null);
         }
+        setIsVisible(false);
+        setDeferredPrompt(null);
     };
 
     if (!isVisible) return null;
