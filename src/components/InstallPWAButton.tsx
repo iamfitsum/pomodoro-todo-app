@@ -33,7 +33,8 @@ const InstallPWAButton = () => {
                 description: "You can now access the app from your home screen.",
             });
         } else {
-            setIsVisible(true);
+            setIsVisible(false);
+            setDeferredPrompt(null);
         }
     };
 

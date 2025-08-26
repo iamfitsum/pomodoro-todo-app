@@ -55,7 +55,15 @@ export default withPWA({
     // Cache images from same-origin and remote with a stale-while-revalidate strategy
     {
       // Cache images when same-origin
-      /** @param {{request: Request, sameOrigin: boolean}} ctx */
+      /**
+       * @param {{
+       *   request: Request,
+       *   sameOrigin: boolean,
+       *   url?: URL,
+       *   event?: Event,
+       *   [key: string]: any
+       * }} ctx
+       */
       urlPattern: (ctx) =>
         ctx.request.destination === "image" && ctx.sameOrigin,
       handler: "StaleWhileRevalidate",
@@ -63,7 +71,7 @@ export default withPWA({
     },
     // API calls to same-origin: network-first with timeout and fallbacks
     {
-      /** @param {{url: URL, sameOrigin: boolean}} ctx */
+      /** @param {{request: Request, sameOrigin: boolean, url: URL}} ctx */
       urlPattern: (ctx) =>
         ctx.sameOrigin && ctx.url.pathname.startsWith("/api"),
       handler: "NetworkFirst",
