@@ -28,8 +28,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         }}
       >
         <TimerProvider>
-          <Navbar />
-          <Component {...pageProps} />
+          <div className="flex min-h-screen flex-col md:h-screen md:overflow-hidden">
+            <Navbar />
+            <div className="flex-1 md:min-h-0">
+              <Component {...pageProps} />
+            </div>
+          </div>
           <Toaster />
         </TimerProvider>
       </ClerkProvider>

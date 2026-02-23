@@ -54,12 +54,17 @@ export default function Home() {
   // API queries
   api.todo.getAll.useQuery();
 
-  const getFullTodo = api.todo.getSelectedTodo.useQuery(
+  api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
     {
       onSuccess(data) {
         if (data) {
           setFullTodo(data);
+        } else if (selectedTodo.value !== "") {
+          setSelectedTodo({ value: "", label: "" });
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem("selectedTodo");
+          }
         }
       },
     }
@@ -118,7 +123,10 @@ export default function Home() {
   if (!userLoaded) return <div />;
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={isSignedIn
+      ? "flex min-h-full flex-col md:h-full md:overflow-hidden"
+      : "flex min-h-full flex-col overflow-auto"
+    }>
       <Head>
         <title>PomodoroTodo</title>
         <meta
@@ -130,11 +138,13 @@ export default function Home() {
       </Head>
 
       {!isSignedIn ? (
-        <WelcomePage />
-      ) : (
         <>
-          <main className="mx-auto flex w-full max-w-screen-2xl 2xl:max-w-none flex-1 flex-col gap-4 p-2 md:flex-row md:p-4">
-            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10 md:rounded-lg md:sticky md:top-16 md:h-[calc(100vh-6rem)] overflow-y-auto border-r border-white/10">
+          <WelcomePage />
+          <Footer />
+        </>
+      ) : (
+        <main className="mx-auto flex w-full max-w-screen-2xl 2xl:max-w-none flex-1 md:min-h-0 flex-col gap-4 p-2 md:flex-row md:p-4 md:overflow-hidden">
+            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10 md:rounded-lg md:h-full md:overflow-hidden overflow-y-auto border-r border-white/10">
               <div className="flex space-x-2">
                 <TodoForm />
                 <TodoCombobox
@@ -152,45 +162,52 @@ export default function Home() {
               <TodoAnalytics fullTodo={fullTodo} />
             </div>
 
-            <div className="flex-1 p-2 md:p-4">
-              <Tabs value={homeTab} onValueChange={(v) => { setHomeTab(v as typeof homeTab); if (typeof window !== "undefined") window.localStorage.setItem("homeTab", v); }} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+            <div className="flex-1 flex flex-col md:h-full min-h-0">
+              <Tabs
+                value={homeTab}
+                onValueChange={(v) => {
+                  setHomeTab(v as typeof homeTab);
+                  if (typeof window !== "undefined") window.localStorage.setItem("homeTab", v);
+                }}
+                className="flex flex-col flex-1 min-h-0 w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2 shrink-0">
                   <TabsTrigger value="task">Task</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="task">
-                  <Card className="bg-muted">
-                    <CardContent className="w-full space-y-2 p-2">
-                      {fullTodo.id !== "" && <EditTodoForm fullTodo={fullTodo} />}
-                      <PomodoroTimers
-                        enableTimer={enableTimer}
-                        selectedTodo={selectedTodo}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                <div className="flex-1 overflow-y-auto min-h-0 mt-2">
+                  <TabsContent value="task" className="mt-0">
+                    <Card className="bg-muted">
+                      <CardContent className="w-full space-y-2 p-2">
+                        {fullTodo.id !== "" && <EditTodoForm fullTodo={fullTodo} />}
+                        <PomodoroTimers
+                          enableTimer={enableTimer}
+                          selectedTodo={selectedTodo}
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
-                <TabsContent value="analytics">
-                  <Card className="bg-muted">
-                    <CardContent className="w-full space-y-2 p-2">
-                      <AnalyticsChart
-                        title="Done Todos By Month"
-                        data={doneTodosByMonth}
-                      />
-                      <AnalyticsChart
-                        title="Undone Todos By Month"
-                        data={undoneTodosByMonth}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                  <TabsContent value="analytics" className="mt-0">
+                    <Card className="bg-muted">
+                      <CardContent className="w-full space-y-2 p-2">
+                        <AnalyticsChart
+                          title="Done Todos By Month"
+                          data={doneTodosByMonth}
+                        />
+                        <AnalyticsChart
+                          title="Undone Todos By Month"
+                          data={undoneTodosByMonth}
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </div>
               </Tabs>
             </div>
           </main>
-        </>
       )}
-      <Footer />
     </div>
   );
 }
