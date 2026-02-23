@@ -125,7 +125,7 @@ export default function Home() {
   return (
     <div className={isSignedIn
       ? "flex min-h-full flex-col md:h-full md:overflow-hidden"
-      : "flex min-h-full flex-col overflow-auto"
+      : "flex flex-col md:h-full md:overflow-auto"
     }>
       <Head>
         <title>PomodoroTodo</title>
