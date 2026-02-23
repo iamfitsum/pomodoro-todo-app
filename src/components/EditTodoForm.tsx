@@ -189,8 +189,6 @@ const EditTodoForm = ({ fullTodo }: Props) => {
           void ctx.todo.getSelectedTodo.invalidate();
           void ctx.todo.doneTodosByMonth.invalidate();
           void ctx.todo.undoneTodosByMonth.invalidate();
-
-          location.reload();
         },
         onError: (err) => {
           const errorMessage = err.data?.zodError?.fieldErrors.content;

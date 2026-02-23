@@ -62,6 +62,17 @@ export default function Home() {
           setFullTodo(data);
         } else if (selectedTodo.value !== "") {
           setSelectedTodo({ value: "", label: "" });
+          setFullTodo({
+            id: "",
+            createdAt: new Date(),
+            title: "",
+            description: "",
+            done: false,
+            dueDate: new Date(),
+            priority: "",
+            tomatoes: 0,
+            authorId: "",
+          });
           if (typeof window !== "undefined") {
             window.localStorage.removeItem("selectedTodo");
           }
