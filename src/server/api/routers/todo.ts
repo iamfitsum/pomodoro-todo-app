@@ -123,6 +123,178 @@ export const todoRouter = createTRPCRouter({
 
     return todosByMonth;
   }),
+  analyticsOverview: privateProcedure.query(async ({ ctx }) => {
+    const todos = await ctx.prisma.todo.findMany({
+      where: {
+        authorId: ctx.userId,
+      },
+      select: {
+        createdAt: true,
+        done: true,
+        dueDate: true,
+        priority: true,
+        tomatoes: true,
+      },
+    });
+
+    const now = new Date();
+    const totalTasks = todos.length;
+    const completedTasks = todos.filter((todo) => todo.done).length;
+    const completionRate = totalTasks === 0
+      ? 0
+      : Math.round((completedTasks / totalTasks) * 100);
+    const totalTomatoes = todos.reduce(
+      (acc, todo) => acc + (todo.tomatoes ?? 0),
+      0
+    );
+    const focusMinutes = totalTomatoes * 25;
+    const overdueOpen = todos.filter(
+      (todo) => !todo.done && !!todo.dueDate && todo.dueDate < now
+    ).length;
+
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOf7DaysAgo = new Date(startOfToday);
+    startOf7DaysAgo.setDate(startOf7DaysAgo.getDate() - 6);
+    const createdLast7Days = todos.filter(
+      (todo) => todo.createdAt >= startOf7DaysAgo
+    ).length;
+
+    const weekStarts = Array.from({ length: 6 }, (_, index) => {
+      const weekStart = new Date(startOfToday);
+      weekStart.setDate(startOfToday.getDate() - (5 - index) * 7);
+      return weekStart;
+    });
+
+    const weeklyTrend = weekStarts.map((weekStart, index) => {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      const weekTodos = todos.filter((todo) =>
+        todo.createdAt >= weekStart && todo.createdAt < weekEnd
+      );
+      return {
+        week: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
+        done: weekTodos.filter((todo) => todo.done).length,
+        open: weekTodos.filter((todo) => !todo.done).length,
+        index,
+      };
+    });
+    const weeklyFocusTrend = weekStarts.map((weekStart) => {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      const weekTodos = todos.filter((todo) =>
+        todo.createdAt >= weekStart && todo.createdAt < weekEnd
+      );
+      const tomatoes = weekTodos.reduce(
+        (acc, todo) => acc + (todo.tomatoes ?? 0),
+        0
+      );
+      return {
+        week: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
+        tomatoes,
+        focusMinutes: tomatoes * 25,
+      };
+    });
+
+    const priorityDistribution = [
+      { priority: "LOW", total: 0 },
+      { priority: "MEDIUM", total: 0 },
+      { priority: "HIGH", total: 0 },
+    ];
+
+    todos.forEach((todo) => {
+      if (todo.done) return;
+      const normalizedPriority =
+        todo.priority === "HIGH" || todo.priority === "MEDIUM"
+          ? todo.priority
+          : "LOW";
+      const target = priorityDistribution.find(
+        (item) => item.priority === normalizedPriority
+      );
+      if (target) target.total += 1;
+    });
+
+    return {
+      kpis: {
+        totalTasks,
+        completedTasks,
+        completionRate,
+        totalTomatoes,
+        focusMinutes,
+        overdueOpen,
+        createdLast7Days,
+      },
+      weeklyTrend,
+      weeklyFocusTrend,
+      priorityDistribution,
+    };
+  }),
+  streakHeatmap: privateProcedure.query(async ({ ctx }) => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - 34);
+    start.setHours(0, 0, 0, 0);
+
+    const sessions = await ctx.prisma.pomodoroSession.findMany({
+      where: {
+        authorId: ctx.userId,
+        createdAt: {
+          gte: start,
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    const keyForDate = (date: Date) => date.toISOString().split("T")[0]!;
+    const byDate = new Map<string, number>();
+    for (const session of sessions) {
+      const key = keyForDate(session.createdAt);
+      byDate.set(key, (byDate.get(key) ?? 0) + 1);
+    }
+
+    const days = Array.from({ length: 35 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const key = keyForDate(date);
+      const count = byDate.get(key) ?? 0;
+      const intensity = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count === 3 ? 3 : 4;
+      return {
+        date: key,
+        count,
+        intensity,
+      };
+    });
+
+    let currentStreak = 0;
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (days[i]?.count && days[i].count > 0) currentStreak += 1;
+      else break;
+    }
+
+    const totalActiveDays = days.filter((day) => day.count > 0).length;
+
+    return {
+      currentStreak,
+      totalActiveDays,
+      days,
+    };
+  }),
+  logPomodoroSession: privateProcedure
+    .input(
+      z.object({
+        todoId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.pomodoroSession.create({
+        data: {
+          authorId: ctx.userId,
+          todoId: input.todoId,
+        },
+      });
+    }),
   create: privateProcedure
     .input(
       z.object({

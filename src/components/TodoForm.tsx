@@ -245,7 +245,11 @@ const TodoForm = () => {
               )}
             />
             <DialogFooter>
-              <Button disabled={isPosting} type="submit">
+              <Button
+                disabled={isPosting}
+                type="submit"
+                className="bg-sky-500 text-white hover:bg-sky-400 dark:bg-sky-600 dark:hover:bg-sky-500"
+              >
                 Submit
               </Button>
             </DialogFooter>

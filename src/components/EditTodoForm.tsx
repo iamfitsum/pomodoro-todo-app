@@ -98,6 +98,9 @@ const EditTodoForm = ({ fullTodo }: Props) => {
   });
   useEffect(() => {
     if (isPomodoroFinished) {
+      logPomodoroSession({
+        todoId: fullTodo.id,
+      });
       updateTodo({
         id: fullTodo.id,
         title: fullTodo.title,
@@ -131,6 +134,8 @@ const EditTodoForm = ({ fullTodo }: Props) => {
       void ctx.todo.getSelectedTodo.invalidate();
       void ctx.todo.doneTodosByMonth.invalidate();
       void ctx.todo.undoneTodosByMonth.invalidate();
+      void ctx.todo.streakHeatmap.invalidate();
+      void ctx.todo.analyticsOverview.invalidate();
 
       form.reset({
         title: fullTodo.title,
@@ -155,6 +160,12 @@ const EditTodoForm = ({ fullTodo }: Props) => {
           description: "Failed to update todo! Please try again later.",
         });
       }
+    },
+  });
+  const { mutate: logPomodoroSession } = api.todo.logPomodoroSession.useMutation({
+    onSuccess: () => {
+      void ctx.todo.streakHeatmap.invalidate();
+      void ctx.todo.analyticsOverview.invalidate();
     },
   });
 

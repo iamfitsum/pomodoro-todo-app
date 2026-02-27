@@ -113,13 +113,13 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
   }, [enableTimer, paused, setPaused, setTimeRemaining, timeDuration, timerDurations, setActiveTimer, setDeadlineMs]);
 
   return (
-    <div className="flex w-full flex-col items-center">
+    <div className="flex h-full w-full min-h-0 flex-col">
       <Tabs
         defaultValue="pomodoro"
-        className="w-full"
+        className="flex h-full w-full min-h-0 flex-col"
         value={activeTimer.valueOf()}
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full shrink-0 grid-cols-3">
           <TabsTrigger
             value="pomodoro"
             onClick={() => {
@@ -154,9 +154,9 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
             long break
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="pomodoro">
-          <Card className="bg-muted">
-            <CardContent className="flex flex-col items-center gap-2 pt-4">
+        <TabsContent value="pomodoro" className="mt-2 flex-1 min-h-0">
+          <Card className="bg-slate-100 dark:bg-slate-950 flex h-full min-h-0 flex-col">
+            <CardContent className="flex flex-1 flex-col items-center gap-2 pt-4">
               {!enableTimer && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Info size={16} />
@@ -215,9 +215,9 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
             </CardFooter>
           </Card>
         </TabsContent>
-        <TabsContent value="shortbreak">
-          <Card className="bg-muted">
-            <CardContent className="flex flex-col items-center gap-2 pt-4">
+        <TabsContent value="shortbreak" className="mt-2 flex-1 min-h-0">
+          <Card className="bg-slate-100 dark:bg-slate-950 flex h-full min-h-0 flex-col">
+            <CardContent className="flex flex-1 flex-col items-center gap-2 pt-4">
               {!enableTimer && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Info size={16} />
@@ -276,9 +276,9 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
             </CardFooter>
           </Card>
         </TabsContent>
-        <TabsContent value="longbreak">
-          <Card className="bg-muted">
-            <CardContent className="flex flex-col items-center gap-2 pt-4">
+        <TabsContent value="longbreak" className="mt-2 flex-1 min-h-0">
+          <Card className="bg-slate-100 dark:bg-slate-950 flex h-full min-h-0 flex-col">
+            <CardContent className="flex flex-1 flex-col items-center gap-2 pt-4">
               {!enableTimer && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Info size={16} />

@@ -4,36 +4,33 @@
 
 @layer base {
   .timer {
-  margin-top: 10px;
+    margin-top: 10px;
+    background: linear-gradient(315deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-radius: 50%;
+    position: relative;
+  }
 
-  /* height: 350px;
-  width: 350px; */
+  .dark .timer {
+    background: linear-gradient(315deg, #2e325a 0%, #0e112a 100%);
+  }
 
-  background: linear-gradient(315deg, #2e325a 0%, #0e112a 100%);
+  .countdown {
+    fill: none;
+    stroke: #0ea5e9;
+    stroke-width: 10;
+    transform-origin: center;
+    transform: rotate(-90deg);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-linecap: round;
+    stroke-opacity: 1;
+    transition: stroke-dashoffset 0.2s ease;
+  }
 
-  border-radius: 50%;
-
-  position: relative;
-}
-
-.countdown {
-  fill: none;
-  stroke: #0ea5e9;
-  stroke-width: 10;
-  transform-origin: center;
-  transform: rotate(-90deg);
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  stroke-linecap: round;
-  stroke-opacity: 1;
-  transition: stroke-dashoffset 0.2s ease;
-}
-
-.countdownText {
-  font-size: 4rem;
-  fill: #0ea5e9;
-  display: inline-block;
-  transform: translateY(1rem);
-}
-
+  .countdownText {
+    font-size: 4rem;
+    fill: #0ea5e9;
+    display: inline-block;
+    transform: translateY(1rem);
+  }
 }

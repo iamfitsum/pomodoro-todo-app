@@ -25,3 +25,13 @@ model Todo {
 
     @@index([authorId])
 }
+
+model PomodoroSession {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    authorId  String
+    todoId    String
+
+    @@index([authorId, createdAt])
+    @@index([todoId])
+}

@@ -1,14 +1,14 @@
 import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import AnalyticsDashboard from "~/components/AnalyticsDashboard";
 import EditTodoForm from "~/components/EditTodoForm";
 import Footer from "~/components/Footer";
 import PomodoroTimers from "~/components/PomodoroTimers";
 import TodoAnalytics from "~/components/TodoAnalytics";
 import TodoCombobox from "~/components/TodoCombobox";
 import TodoForm from "~/components/TodoForm";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import WelcomePage from "~/components/WelcomePage";
 import { api } from "~/utils/api";
@@ -43,14 +43,6 @@ export default function Home() {
     authorId: "",
   });
 
-  const [doneTodosByMonth, setDoneTodosByMonth] = useState<
-    { name: string; total: number; }[] | undefined
-  >(undefined);
-
-  const [undoneTodosByMonth, setUndoneTodosByMonth] = useState<
-    { name: string; total: number; }[] | undefined
-  >(undefined);
-
   // API queries
   api.todo.getAll.useQuery();
 
@@ -80,32 +72,6 @@ export default function Home() {
       },
     }
   );
-
-  api.todo.doneTodosByMonth.useQuery(undefined, {
-    onSuccess(data) {
-      const doneTodosByMonthData = data.map((analytics) => ({
-        name: analytics.name.substring(0, 3),
-        total: analytics.total,
-      }));
-      const uniqueByName = Array.from(
-        new Map(doneTodosByMonthData.map((d) => [d.name, d])).values()
-      );
-      setDoneTodosByMonth(uniqueByName);
-    },
-  });
-
-  api.todo.undoneTodosByMonth.useQuery(undefined, {
-    onSuccess(data) {
-      const undoneTodosByMonthData = data.map((analytics) => ({
-        name: analytics.name.substring(0, 3),
-        total: analytics.total,
-      }));
-      const uniqueByName = Array.from(
-        new Map(undoneTodosByMonthData.map((d) => [d.name, d])).values()
-      );
-      setUndoneTodosByMonth(uniqueByName);
-    },
-  });
 
   useEffect(() => {
     if (selectedTodo.value !== "") {
@@ -155,104 +121,63 @@ export default function Home() {
         </>
       ) : (
         <main className="mx-auto flex w-full max-w-screen-2xl 2xl:max-w-none flex-1 md:min-h-0 flex-col gap-4 p-2 md:flex-row md:p-4 md:overflow-hidden">
-            <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10 md:rounded-lg md:h-full md:overflow-hidden overflow-y-auto border-r border-white/10">
-              <div className="flex space-x-2">
-                <TodoForm />
-                <TodoCombobox
-                  selectedTodo={selectedTodo}
-                  setSelectedTodo={(v) => {
-                    setSelectedTodo(v);
-                    if (typeof window !== "undefined") {
-                      try {
-                        window.localStorage.setItem("selectedTodo", JSON.stringify(v));
-                      } catch { }
-                    }
-                  }}
-                />
-              </div>
-              <TodoAnalytics fullTodo={fullTodo} />
-            </div>
-
-            <div className="flex-1 flex flex-col md:h-full min-h-0">
-              <Tabs
-                value={homeTab}
-                onValueChange={(v) => {
-                  setHomeTab(v as typeof homeTab);
-                  if (typeof window !== "undefined") window.localStorage.setItem("homeTab", v);
+          <div className="bg-gradient-to-br from-[#2e325a] to-[#0ea5e9] p-5 text-white md:w-[480px] md:min-w-[480px] md:flex-shrink-0 md:p-10 md:rounded-lg md:h-full md:overflow-hidden overflow-y-auto border-r border-white/10">
+            <div className="flex space-x-2">
+              <TodoForm />
+              <TodoCombobox
+                selectedTodo={selectedTodo}
+                setSelectedTodo={(v) => {
+                  setSelectedTodo(v);
+                  if (typeof window !== "undefined") {
+                    try {
+                      window.localStorage.setItem("selectedTodo", JSON.stringify(v));
+                    } catch { }
+                  }
                 }}
-                className="flex flex-col flex-1 min-h-0 w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 shrink-0">
-                  <TabsTrigger value="task">Task</TabsTrigger>
-                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                </TabsList>
-
-                <div className="flex-1 overflow-y-auto min-h-0 mt-2">
-                  <TabsContent value="task" className="mt-0">
-                    <Card className="bg-muted">
-                      <CardContent className="w-full space-y-2 p-2">
-                        {fullTodo.id !== "" && <EditTodoForm fullTodo={fullTodo} />}
-                        <PomodoroTimers
-                          enableTimer={enableTimer}
-                          selectedTodo={selectedTodo}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="analytics" className="mt-0">
-                    <Card className="bg-muted">
-                      <CardContent className="w-full space-y-2 p-2">
-                        <AnalyticsChart
-                          title="Done Todos By Month"
-                          data={doneTodosByMonth}
-                        />
-                        <AnalyticsChart
-                          title="Undone Todos By Month"
-                          data={undoneTodosByMonth}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </div>
-              </Tabs>
+              />
             </div>
-          </main>
+            <TodoAnalytics fullTodo={fullTodo} />
+          </div>
+
+          <div className="flex-1 flex flex-col md:h-full min-h-0">
+            <Tabs
+              value={homeTab}
+              onValueChange={(v) => {
+                setHomeTab(v as typeof homeTab);
+                if (typeof window !== "undefined") window.localStorage.setItem("homeTab", v);
+              }}
+              className="flex flex-col flex-1 min-h-0 w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 shrink-0">
+                <TabsTrigger value="task">Task</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
+
+              <div className="mt-2 flex flex-1 flex-col min-h-0">
+                <TabsContent value="task" className="mt-0 flex-1 flex min-h-0 flex-col overflow-y-auto [&:not([data-state=active])]:hidden [&[data-state=active]]:flex">
+                  <Card className="bg-muted flex-1 flex flex-col min-h-0">
+                    <CardContent className="flex flex-1 w-full flex-col space-y-2 p-2">
+                      {fullTodo.id !== "" && <EditTodoForm fullTodo={fullTodo} />}
+                      <PomodoroTimers
+                        enableTimer={enableTimer}
+                        selectedTodo={selectedTodo}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="analytics" className="mt-0 flex-1 flex flex-col min-h-0 [&:not([data-state=active])]:hidden [&[data-state=active]]:flex">
+                  <Card className="bg-muted flex min-h-0 w-full flex-1 flex-col">
+                    <CardContent className="flex min-h-0 w-full flex-1 p-2">
+                      <AnalyticsDashboard />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+        </main>
       )}
     </div>
-  );
-}
-
-function AnalyticsChart({ title, data }: { title: string; data: { name: string; total: number; }[] | undefined }) {
-  return (
-    <Card className="bg-muted">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={data}>
-            <XAxis
-              dataKey="name"
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Bar
-              dataKey="total"
-              fill="#0ea5e9"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
   );
 }

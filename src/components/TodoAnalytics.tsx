@@ -35,6 +35,8 @@ type Props = {
 
 const TodoAnalytics = ({ fullTodo }: Props) => {
   const [totalTomatoes, setTotalTomatoes] = useState(0);
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const { data: streakData } = api.todo.streakHeatmap.useQuery();
   api.todo.getTotalTomatoes.useQuery(undefined, {
     onSuccess(data) {
       if (data) {
@@ -145,6 +147,72 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
           </CardContent>
         </Card>
       </div>
+      <Card className="mt-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-[#0ea5e9]">
+            Streak
+          </CardTitle>
+          <CardDescription className="text-[#0ea5e9]">
+            {streakData?.currentStreak ?? 0} day streak ·{" "}
+            {streakData?.totalActiveDays ?? 0}/35 active days
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-1">
+            {streakData?.days.map((day) => {
+              const levelClass =
+                day.intensity === 0
+                  ? "bg-slate-200 dark:bg-slate-800"
+                  : day.intensity === 1
+                    ? "bg-sky-200 dark:bg-sky-700"
+                    : day.intensity === 2
+                      ? "bg-sky-300 dark:bg-sky-600"
+                      : day.intensity === 3
+                        ? "bg-sky-500 dark:bg-sky-500"
+                        : "bg-sky-700 dark:bg-sky-400";
+
+              return (
+                <div
+                  key={day.date}
+                  className="relative"
+                  onMouseEnter={() => setHoveredDate(day.date)}
+                  onMouseLeave={() => setHoveredDate(null)}
+                >
+                  <div
+                    className={cn(
+                      "h-3 w-full rounded-[2px] transition-transform duration-150 hover:scale-110",
+                      "ring-1 ring-transparent hover:ring-sky-400/70",
+                      levelClass
+                    )}
+                  />
+                  {hoveredDate === day.date && (
+                    <div className="pointer-events-none absolute -top-12 left-1/2 z-20 min-w-[9rem] -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                      <div className="text-slate-600 dark:text-slate-300">
+                        {new Date(day.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-sky-500" />
+                          <span className="text-slate-600 dark:text-slate-300">
+                            Tomatoes
+                          </span>
+                        </div>
+                        <span className="font-medium tabular-nums text-slate-900 dark:text-slate-50">
+                          {day.count}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 };
