@@ -46,7 +46,7 @@ export default function Home() {
   // API queries
   api.todo.getAll.useQuery();
 
-  api.todo.getSelectedTodo.useQuery(
+  const selectedTodoQuery = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
     {
       onSuccess(data) {
@@ -136,7 +136,14 @@ export default function Home() {
                 }}
               />
             </div>
-            <TodoAnalytics fullTodo={fullTodo} />
+            <TodoAnalytics
+              fullTodo={fullTodo}
+              showTodoDetailsSkeleton={
+                selectedTodo.value !== "" &&
+                selectedTodoQuery.isLoading &&
+                fullTodo.id === ""
+              }
+            />
           </div>
 
           <div className="flex-1 flex flex-col md:h-full min-h-0">

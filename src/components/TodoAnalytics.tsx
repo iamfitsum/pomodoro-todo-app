@@ -1,5 +1,5 @@
 import { Apple, CircleIcon, Clock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -31,22 +31,43 @@ type Props = {
     tomatoes: number;
     authorId: string;
   };
+  showTodoDetailsSkeleton?: boolean;
 };
 
-const TodoAnalytics = ({ fullTodo }: Props) => {
-  const [totalTomatoes, setTotalTomatoes] = useState(0);
+const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => {
+  const [now, setNow] = useState(() => new Date());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
-  const { data: streakData } = api.todo.streakHeatmap.useQuery();
-  api.todo.getTotalTomatoes.useQuery(undefined, {
-    onSuccess(data) {
-      if (data) {
-        setTotalTomatoes(data.totalTomatoes);
-      }
-    },
-  });
+  const { data: streakData, isLoading: isStreakLoading } =
+    api.todo.streakHeatmap.useQuery();
+  const { data: totalTomatoesData, isLoading: isTotalTomatoesLoading } =
+    api.todo.getTotalTomatoes.useQuery();
+  const totalTomatoes = totalTomatoesData?.totalTomatoes ?? 0;
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
   return (
     <>
-      {fullTodo.id !== "" && (
+      {showTodoDetailsSkeleton && (
+        <Card className="mt-2">
+          <CardHeader>
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+            <div className="h-4 w-5/6 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex space-x-3 text-xs md:space-x-4 md:text-sm">
+              <div className="h-4 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="h-4 w-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="h-4 w-28 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {fullTodo.id !== "" && !showTodoDetailsSkeleton && (
         <Card className="mt-2">
           <CardHeader>
             <CardDescription className="text-[#0ea5e9] dark:text-[#0ea5e9] break-words leading-snug">
@@ -91,7 +112,7 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
       <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
         <div>
           <p className="text-xl">
-            {new Date().toLocaleDateString("en-US", {
+            {now.toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -105,7 +126,7 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
         </div>
 
         <p className="text-xl font-bold uppercase">
-          {new Date().toLocaleTimeString("en-US", {
+          {now.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "numeric",
             hour12: true,
@@ -122,9 +143,13 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
             <Apple className="text-muted-foreground h-4 w-4 text-[#0ea5e9]" />
           </CardHeader>
           <CardContent>
-            <div className="text-center text-2xl font-bold text-[#0ea5e9]">
-              {totalTomatoes}
-            </div>
+            {isTotalTomatoesLoading ? (
+              <div className="mx-auto h-8 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+            ) : (
+              <div className="text-center text-2xl font-bold text-[#0ea5e9]">
+                {totalTomatoes}
+              </div>
+            )}
             <p className="text-muted-foreground text-center text-xs text-[#0ea5e9]">
               total focus sessions
             </p>
@@ -138,9 +163,13 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
             <Clock className="text-muted-foreground h-4 w-4 text-[#0ea5e9]" />
           </CardHeader>
           <CardContent>
-            <div className="text-center text-2xl font-bold text-[#0ea5e9]">
-              {getMinuteFromNumber(totalTomatoes)}
-            </div>
+            {isTotalTomatoesLoading ? (
+              <div className="mx-auto h-8 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+            ) : (
+              <div className="text-center text-2xl font-bold text-[#0ea5e9]">
+                {getMinuteFromNumber(totalTomatoes)}
+              </div>
+            )}
             <p className="text-muted-foreground text-center text-xs text-[#0ea5e9]">
               total focus time
             </p>
@@ -152,14 +181,26 @@ const TodoAnalytics = ({ fullTodo }: Props) => {
           <CardTitle className="text-sm font-medium text-[#0ea5e9]">
             Streak
           </CardTitle>
-          <CardDescription className="text-[#0ea5e9]">
-            {streakData?.currentStreak ?? 0} day streak ·{" "}
-            {streakData?.totalActiveDays ?? 0}/35 active days
-          </CardDescription>
+          {isStreakLoading ? (
+            <div className="h-4 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          ) : (
+            <CardDescription className="text-[#0ea5e9]">
+              {streakData?.currentStreak ?? 0} day streak ·{" "}
+              {streakData?.totalActiveDays ?? 0}/35 active days
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-1">
-            {streakData?.days.map((day) => {
+            {isStreakLoading &&
+              Array.from({ length: 35 }).map((_, index) => (
+                <div
+                  key={`streak-skeleton-${index}`}
+                  className="h-3 w-full animate-pulse rounded-[2px] bg-slate-200 dark:bg-slate-800"
+                />
+              ))}
+            {!isStreakLoading &&
+              streakData?.days.map((day) => {
               const levelClass =
                 day.intensity === 0
                   ? "bg-slate-200 dark:bg-slate-800"
