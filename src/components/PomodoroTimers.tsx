@@ -75,6 +75,15 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!enableTimer) return;
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        !!target &&
+        (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable
+        );
+      if (isEditable) return;
       if (e.code === "Space") {
         e.preventDefault();
         setPaused(!paused);
