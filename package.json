@@ -75,7 +75,8 @@
     "overrides": {
       "@babel/runtime": ">=7.26.10",
       "nanoid": ">=3.3.8",
-      "rollup": "^2.80.0"
+      "rollup": "^2.80.0",
+      "minimatch": "^9.0.7"
     }
   }
 }
