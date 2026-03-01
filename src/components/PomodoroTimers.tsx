@@ -138,7 +138,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setDeadlineMs(null);
             }}
           >
-            pomodoro
+            Pomodoro
           </TabsTrigger>
           <TabsTrigger
             value="shortbreak"
@@ -149,7 +149,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setDeadlineMs(null);
             }}
           >
-            short break
+            Short Break
           </TabsTrigger>
           <TabsTrigger
             value="longbreak"
@@ -160,7 +160,7 @@ const PomodoroTimers = ({ enableTimer, selectedTodo }: Props) => {
               setDeadlineMs(null);
             }}
           >
-            long break
+            Long Break
           </TabsTrigger>
         </TabsList>
         <TabsContent value="pomodoro" className="mt-2 flex-1 min-h-0">

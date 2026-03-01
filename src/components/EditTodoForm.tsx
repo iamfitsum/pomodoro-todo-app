@@ -96,6 +96,14 @@ const EditTodoForm = ({ fullTodo }: Props) => {
       priority: fullTodo.priority!,
     },
   });
+  const hasDueDate = !!fullTodo.dueDate;
+  const isOverdue =
+    hasDueDate && !fullTodo.done && dayjs(fullTodo.dueDate).isBefore(dayjs());
+  const dueOrCreatedLabel = hasDueDate
+    ? (isOverdue
+      ? `Overdue ${dayjs(fullTodo.dueDate).fromNow()}`
+      : `Due ${dayjs(fullTodo.dueDate).fromNow()}`)
+    : `Created ${dayjs(fullTodo.createdAt).fromNow()}`;
   useEffect(() => {
     if (isPomodoroFinished) {
       logPomodoroSession({
@@ -230,8 +238,13 @@ const EditTodoForm = ({ fullTodo }: Props) => {
           className="space-y-2"
         >
           <div className="flex items-center justify-between">
-            <Badge variant="outline">
-              {dayjs(fullTodo.createdAt).fromNow()}
+            <Badge
+              variant="outline"
+              className={cn(
+                isOverdue && "border-red-500/50 text-red-500 dark:text-red-400"
+              )}
+            >
+              {dueOrCreatedLabel}
             </Badge>
             <div className="flex space-x-2">
               <Popover>

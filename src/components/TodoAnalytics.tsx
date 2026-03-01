@@ -1,5 +1,6 @@
 import { Apple, CircleIcon, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Badge } from "~/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -7,6 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { api } from "~/utils/api";
 import { cn } from "~/utils/utils";
 
@@ -37,10 +45,19 @@ type Props = {
 const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => {
   const [now, setNow] = useState(() => new Date());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { data: streakData, isLoading: isStreakLoading } =
     api.todo.streakHeatmap.useQuery();
   const { data: totalTomatoesData, isLoading: isTotalTomatoesLoading } =
     api.todo.getTotalTomatoes.useQuery();
+  const { data: selectedDateDetails, isLoading: isSelectedDateDetailsLoading } =
+    api.todo.streakDateDetails.useQuery(
+      { date: selectedDate ?? "1970-01-01" },
+      {
+        enabled: !!selectedDate,
+      }
+    );
   const totalTomatoes = totalTomatoesData?.totalTomatoes ?? 0;
 
   useEffect(() => {
@@ -108,7 +125,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
           </CardContent>
         </Card>
       )}
-      <hr className="my-5 md:my-10" />
+      <hr className="my-5 md:my-8" />
       <div className="mb-5 mt-5 flex items-center justify-between space-x-10">
         <div>
           <p className="text-xl">
@@ -133,7 +150,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
           })}
         </p>
       </div>
-      <hr className="my-5 md:my-10" />
+      <hr className="my-5 md:my-8" />
       <div className="flex w-full justify-between space-x-2">
         <Card className="w-1/2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -176,7 +193,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
           </CardContent>
         </Card>
       </div>
-      <Card className="mt-4">
+      <Card className="mt-2">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium text-[#0ea5e9]">
             Streak
@@ -201,59 +218,125 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
               ))}
             {!isStreakLoading &&
               streakData?.days.map((day) => {
-              const levelClass =
-                day.intensity === 0
-                  ? "bg-slate-200 dark:bg-slate-800"
-                  : day.intensity === 1
-                    ? "bg-sky-200 dark:bg-sky-700"
-                    : day.intensity === 2
-                      ? "bg-sky-300 dark:bg-sky-600"
-                      : day.intensity === 3
-                        ? "bg-sky-500 dark:bg-sky-500"
-                        : "bg-sky-700 dark:bg-sky-400";
+                const levelClass =
+                  day.intensity === 0
+                    ? "bg-slate-200 dark:bg-slate-800"
+                    : day.intensity === 1
+                      ? "bg-sky-200 dark:bg-sky-700"
+                      : day.intensity === 2
+                        ? "bg-sky-300 dark:bg-sky-600"
+                        : day.intensity === 3
+                          ? "bg-sky-500 dark:bg-sky-500"
+                          : "bg-sky-700 dark:bg-sky-400";
 
-              return (
-                <div
-                  key={day.date}
-                  className="relative"
-                  onMouseEnter={() => setHoveredDate(day.date)}
-                  onMouseLeave={() => setHoveredDate(null)}
-                >
+                return (
                   <div
-                    className={cn(
-                      "h-3 w-full rounded-[2px] transition-transform duration-150 hover:scale-110",
-                      "ring-1 ring-transparent hover:ring-sky-400/70",
-                      levelClass
-                    )}
-                  />
-                  {hoveredDate === day.date && (
-                    <div className="pointer-events-none absolute -top-12 left-1/2 z-20 min-w-[9rem] -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-xl dark:border-slate-800 dark:bg-slate-950">
-                      <div className="text-slate-600 dark:text-slate-300">
-                        {new Date(day.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-sky-500" />
-                          <span className="text-slate-600 dark:text-slate-300">
-                            Tomatoes
+                    key={day.date}
+                    className="relative"
+                    onMouseEnter={() => setHoveredDate(day.date)}
+                    onMouseLeave={() => setHoveredDate(null)}
+                  onClick={() => {
+                    setSelectedDate(day.date);
+                    setIsDetailsOpen(true);
+                  }}
+                  >
+                    <div
+                      className={cn(
+                      "h-3 w-full cursor-pointer rounded-[2px] transition-transform duration-150 hover:scale-110",
+                        "ring-1 ring-transparent hover:ring-sky-400/70",
+                      selectedDate === day.date && "ring-sky-400/90",
+                        levelClass
+                      )}
+                    />
+                    {hoveredDate === day.date && (
+                      <div className="pointer-events-none absolute -top-12 left-1/2 z-20 min-w-[9rem] -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                        <div className="text-slate-600 dark:text-slate-300">
+                          {new Date(day.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div>
+                        <div className="mt-1 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-sky-500" />
+                            <span className="text-slate-600 dark:text-slate-300">
+                              Tomatoes
+                            </span>
+                          </div>
+                          <span className="font-medium tabular-nums text-slate-900 dark:text-slate-50">
+                            {day.count}
                           </span>
                         </div>
-                        <span className="font-medium tabular-nums text-slate-900 dark:text-slate-50">
-                          {day.count}
-                        </span>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={isDetailsOpen}
+        onOpenChange={(open) => {
+          setIsDetailsOpen(open);
+          if (!open) setSelectedDate(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Daily Pomodoro Details</DialogTitle>
+            <DialogDescription>
+              {selectedDate
+                ? new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+                : "Selected day"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Total pomodoros
+              </p>
+              <Badge variant="secondary">
+                {selectedDateDetails?.totalSessions ?? 0}
+              </Badge>
+            </div>
+
+            {isSelectedDateDetailsLoading ? (
+              <div className="space-y-2">
+                <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-4/5 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-3/5 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+              </div>
+            ) : selectedDateDetails && selectedDateDetails.items.length > 0 ? (
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                {selectedDateDetails.items.map((item) => (
+                  <div
+                    key={item.todoId}
+                    className="flex items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800"
+                  >
+                    <p className="truncate text-sm text-slate-700 dark:text-slate-200">
+                      {item.title}
+                    </p>
+                    <Badge variant="outline">{item.sessions}</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No pomodoros logged for this day.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -281,6 +281,66 @@ export const todoRouter = createTRPCRouter({
       days,
     };
   }),
+  streakDateDetails: privateProcedure
+    .input(
+      z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const start = new Date(`${input.date}T00:00:00.000Z`);
+      const end = new Date(start);
+      end.setUTCDate(end.getUTCDate() + 1);
+
+      const sessions = await ctx.prisma.pomodoroSession.findMany({
+        where: {
+          authorId: ctx.userId,
+          createdAt: {
+            gte: start,
+            lt: end,
+          },
+        },
+        select: {
+          todoId: true,
+        },
+      });
+
+      const byTodo = new Map<string, number>();
+      for (const session of sessions) {
+        byTodo.set(session.todoId, (byTodo.get(session.todoId) ?? 0) + 1);
+      }
+
+      const todoIds = Array.from(byTodo.keys());
+      const todos = todoIds.length > 0
+        ? await ctx.prisma.todo.findMany({
+          where: {
+            id: {
+              in: todoIds,
+            },
+            authorId: ctx.userId,
+          },
+          select: {
+            id: true,
+            title: true,
+          },
+        })
+        : [];
+
+      const titleById = new Map(todos.map((todo) => [todo.id, todo.title]));
+      const items = todoIds
+        .map((todoId) => ({
+          todoId,
+          title: titleById.get(todoId) ?? "Unknown todo",
+          sessions: byTodo.get(todoId) ?? 0,
+        }))
+        .sort((a, b) => b.sessions - a.sessions);
+
+      return {
+        date: input.date,
+        totalSessions: sessions.length,
+        items,
+      };
+    }),
   logPomodoroSession: privateProcedure
     .input(
       z.object({
