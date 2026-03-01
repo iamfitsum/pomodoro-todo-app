@@ -4,8 +4,7 @@
  */
 await import("./src/env.mjs");
 
-// @ts-expect-error next-pwa has no types
-import withPWA from "next-pwa";
+import createPWA from "@ducanh2912/next-pwa";
 
 /** @type {import("next").NextConfig} */
 const baseConfig = {
@@ -29,7 +28,7 @@ const baseConfig = {
   },
 };
 
-export default withPWA({
+const withPWA = createPWA({
   dest: "public",
   register: true,
   skipWaiting: true,
@@ -82,4 +81,6 @@ export default withPWA({
       },
     },
   ],
-})(baseConfig);
+});
+
+export default withPWA(baseConfig);
