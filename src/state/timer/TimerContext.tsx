@@ -62,6 +62,31 @@ const defaultValue: ITimerContext = {
 const TimerContext = createContext<ITimerContext>(defaultValue);
 
 export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  const normalizeTimerVariant = (value: unknown): TimerVariants => {
+    if (typeof value !== "string") return defaultValue.activeTimer;
+    const normalized = value.toLowerCase().replace(/\s+/g, "");
+    if (normalized === TimerVariants.POMODORO) return TimerVariants.POMODORO;
+    if (normalized === TimerVariants.SHORT) return TimerVariants.SHORT;
+    if (normalized === TimerVariants.LONG) return TimerVariants.LONG;
+    return defaultValue.activeTimer;
+  };
+
+  const normalizeTimerDurations = (value: unknown): TimerDurations => {
+    const durations = typeof value === "object" && value !== null
+      ? (value as Partial<Record<string, number>>)
+      : {};
+    const pomodoro = typeof durations.pomodoro === "number" && durations.pomodoro > 0
+      ? durations.pomodoro
+      : defaultValue.timerDurations.pomodoro;
+    const shortbreak = typeof durations.shortbreak === "number" && durations.shortbreak > 0
+      ? durations.shortbreak
+      : defaultValue.timerDurations.shortbreak;
+    const longbreak = typeof durations.longbreak === "number" && durations.longbreak > 0
+      ? durations.longbreak
+      : defaultValue.timerDurations.longbreak;
+    return { pomodoro, shortbreak, longbreak };
+  };
+
   // Hydrate initial state synchronously from localStorage to avoid a write-before-read race
   const loadInitial = () => {
     if (typeof window === "undefined") {
@@ -93,11 +118,11 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         timerDurations?: TimerDurations;
         deadlineMs?: number | null;
       };
-      const activeTimer = saved.activeTimer ?? defaultValue.activeTimer;
+      const activeTimer = normalizeTimerVariant(saved.activeTimer);
       const paused = typeof saved.paused === "boolean" ? saved.paused : defaultValue.paused;
       const isPomodoroFinished = typeof saved.isPomodoroFinished === "boolean" ? saved.isPomodoroFinished : defaultValue.isPomodoroFinished;
       const completedTomatoes = typeof saved.completedTomatoes === "number" ? saved.completedTomatoes : defaultValue.completedTomatoes;
-      const timerDurations = saved.timerDurations ?? defaultValue.timerDurations;
+      const timerDurations = normalizeTimerDurations(saved.timerDurations);
       let deadlineMs = typeof saved.deadlineMs === "number" ? saved.deadlineMs : null;
       let timeRemaining: number;
       if (deadlineMs && !paused) {
