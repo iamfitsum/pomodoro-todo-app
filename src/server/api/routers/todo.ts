@@ -12,6 +12,38 @@ const filterTodosForClient = (todos: Todo[]) => {
   });
 };
 
+const MILLISECONDS_PER_MINUTE = 60_000;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const normalizeTimezoneOffsetMinutes = (offsetMinutes?: number) => {
+  if (
+    typeof offsetMinutes !== "number" ||
+    !Number.isFinite(offsetMinutes) ||
+    offsetMinutes < -14 * 60 ||
+    offsetMinutes > 14 * 60
+  ) {
+    return 0;
+  }
+  return Math.trunc(offsetMinutes);
+};
+
+const toLocalDateKey = (date: Date, offsetMinutes: number) => {
+  const shifted = new Date(
+    date.getTime() - offsetMinutes * MILLISECONDS_PER_MINUTE
+  );
+  return shifted.toISOString().split("T")[0]!;
+};
+
+const localDateKeyToUtcStart = (dateKey: string, offsetMinutes: number) => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) {
+    throw new Error(`Invalid local date key: ${dateKey}`);
+  }
+  return new Date(
+    Date.UTC(year, month - 1, day) + offsetMinutes * MILLISECONDS_PER_MINUTE
+  );
+};
+
 export const todoRouter = createTRPCRouter({
   getAll: privateProcedure.query(async ({ ctx }) => {
     const todos = await ctx.prisma.todo.findMany({
@@ -229,17 +261,34 @@ export const todoRouter = createTRPCRouter({
       priorityDistribution,
     };
   }),
-  streakHeatmap: privateProcedure.query(async ({ ctx }) => {
+  streakHeatmap: privateProcedure
+    .input(
+      z
+        .object({
+          timezoneOffsetMinutes: z.number().int().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+    const timezoneOffsetMinutes = normalizeTimezoneOffsetMinutes(
+      input?.timezoneOffsetMinutes
+    );
     const now = new Date();
-    const start = new Date(now);
-    start.setDate(now.getDate() - 34);
-    start.setHours(0, 0, 0, 0);
+    const shiftedNowMs =
+      now.getTime() - timezoneOffsetMinutes * MILLISECONDS_PER_MINUTE;
+    const shiftedStartOfToday = new Date(shiftedNowMs);
+    shiftedStartOfToday.setUTCHours(0, 0, 0, 0);
+    const shiftedStartMs =
+      shiftedStartOfToday.getTime() - 34 * MILLISECONDS_PER_DAY;
+    const startUtc = new Date(
+      shiftedStartMs + timezoneOffsetMinutes * MILLISECONDS_PER_MINUTE
+    );
 
     const sessions = await ctx.prisma.pomodoroSession.findMany({
       where: {
         authorId: ctx.userId,
         createdAt: {
-          gte: start,
+          gte: startUtc,
         },
       },
       select: {
@@ -247,17 +296,15 @@ export const todoRouter = createTRPCRouter({
       },
     });
 
-    const keyForDate = (date: Date) => date.toISOString().split("T")[0]!;
     const byDate = new Map<string, number>();
     for (const session of sessions) {
-      const key = keyForDate(session.createdAt);
+      const key = toLocalDateKey(session.createdAt, timezoneOffsetMinutes);
       byDate.set(key, (byDate.get(key) ?? 0) + 1);
     }
 
     const days = Array.from({ length: 35 }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
-      const key = keyForDate(date);
+      const date = new Date(shiftedStartMs + index * MILLISECONDS_PER_DAY);
+      const key = date.toISOString().split("T")[0]!;
       const count = byDate.get(key) ?? 0;
       const intensity = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count === 3 ? 3 : 4;
       return {
@@ -285,12 +332,18 @@ export const todoRouter = createTRPCRouter({
     .input(
       z.object({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        timezoneOffsetMinutes: z.number().int().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const start = new Date(`${input.date}T00:00:00.000Z`);
-      const end = new Date(start);
-      end.setUTCDate(end.getUTCDate() + 1);
+      const timezoneOffsetMinutes = normalizeTimezoneOffsetMinutes(
+        input.timezoneOffsetMinutes
+      );
+      const start = localDateKeyToUtcStart(
+        input.date,
+        timezoneOffsetMinutes
+      );
+      const end = new Date(start.getTime() + MILLISECONDS_PER_DAY);
 
       const sessions = await ctx.prisma.pomodoroSession.findMany({
         where: {

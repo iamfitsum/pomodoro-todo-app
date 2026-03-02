@@ -27,6 +27,11 @@ const getMinuteFromNumber = (num: number) => {
   return `${formattedHours}:${formattedMinutes}`;
 };
 
+const parseLocalDateKey = (dateKey: string) => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
+};
+
 type Props = {
   fullTodo: {
     id: string;
@@ -44,16 +49,20 @@ type Props = {
 
 const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => {
   const [now, setNow] = useState(() => new Date());
+  const timezoneOffsetMinutes = now.getTimezoneOffset();
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { data: streakData, isLoading: isStreakLoading } =
-    api.todo.streakHeatmap.useQuery();
+    api.todo.streakHeatmap.useQuery({ timezoneOffsetMinutes });
   const { data: totalTomatoesData, isLoading: isTotalTomatoesLoading } =
     api.todo.getTotalTomatoes.useQuery();
   const { data: selectedDateDetails, isLoading: isSelectedDateDetailsLoading } =
     api.todo.streakDateDetails.useQuery(
-      { date: selectedDate ?? "1970-01-01" },
+      {
+        date: selectedDate ?? "1970-01-01",
+        timezoneOffsetMinutes,
+      },
       {
         enabled: !!selectedDate,
       }
@@ -251,7 +260,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
                     {hoveredDate === day.date && (
                       <div className="pointer-events-none absolute -top-12 left-1/2 z-20 min-w-[9rem] -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-xl dark:border-slate-800 dark:bg-slate-950">
                         <div className="text-slate-600 dark:text-slate-300">
-                          {new Date(day.date).toLocaleDateString("en-US", {
+                          {parseLocalDateKey(day.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -289,7 +298,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
             <DialogTitle>Daily Pomodoro Details</DialogTitle>
             <DialogDescription>
               {selectedDate
-                ? new Date(selectedDate).toLocaleDateString("en-US", {
+                ? parseLocalDateKey(selectedDate).toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "short",
                   day: "numeric",

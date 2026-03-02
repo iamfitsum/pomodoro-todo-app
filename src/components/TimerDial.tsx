@@ -38,6 +38,14 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
 
   // Web Worker tick fallback for background tabs
   const workerRef = useRef<Worker | null>(null);
+  const runStateRef = useRef<{ paused: boolean; deadlineMs: number | null }>({
+    paused,
+    deadlineMs,
+  });
+  useEffect(() => {
+    runStateRef.current = { paused, deadlineMs };
+  }, [paused, deadlineMs]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -45,7 +53,13 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
       workerRef.current = w;
       w.onmessage = (e: MessageEvent) => {
         const { type, remaining } = e.data || {};
-        if (type === "tick" && typeof remaining === "number") {
+        const state = runStateRef.current;
+        if (
+          type === "tick" &&
+          typeof remaining === "number" &&
+          !state.paused &&
+          state.deadlineMs !== null
+        ) {
           setTimeRemaining(remaining);
         }
       };
@@ -72,7 +86,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
   }, [paused, isFinished, deadlineMs, secTimeRemaining, setTimeRemaining]);
 
   useEffect(() => {
-    if (!isFinished) return;
+    if (!isFinished || paused) return;
     const audio = new Audio("/audio/doorbell.mp3");
     void audio.play();
 
@@ -93,6 +107,7 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
     }
   }, [
     isFinished,
+    paused,
     activeTimer,
     timerDurations,
     completedTomatoes,
