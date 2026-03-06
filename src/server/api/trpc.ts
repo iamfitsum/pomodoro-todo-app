@@ -21,7 +21,15 @@ import { prisma } from "~/server/db";
  */
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
-  const { userId } = getAuth(req);
+  let userId: ReturnType<typeof getAuth>["userId"] = null;
+  try {
+    ({ userId } = getAuth(req));
+  } catch (error) {
+    console.error("tRPC auth context initialization failed", {
+      error,
+      url: req.url,
+    });
+  }
 
   return {
     prisma,

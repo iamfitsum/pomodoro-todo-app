@@ -44,11 +44,14 @@ export default function Home() {
   });
 
   // API queries
-  api.todo.getAll.useQuery();
+  api.todo.getAll.useQuery(undefined, {
+    enabled: userLoaded && !!isSignedIn,
+  });
 
   const selectedTodoQuery = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
     {
+      enabled: userLoaded && !!isSignedIn && selectedTodo.value !== "",
       onSuccess(data) {
         if (data) {
           setFullTodo(data);
@@ -72,6 +75,22 @@ export default function Home() {
       },
     }
   );
+
+  useEffect(() => {
+    if (selectedTodo.value === "") {
+      setFullTodo({
+        id: "",
+        createdAt: new Date(),
+        title: "",
+        description: "",
+        done: false,
+        dueDate: new Date(),
+        priority: "",
+        tomatoes: 0,
+        authorId: "",
+      });
+    }
+  }, [selectedTodo.value]);
 
   useEffect(() => {
     if (selectedTodo.value !== "") {
