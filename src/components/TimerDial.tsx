@@ -139,14 +139,13 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
   // Ensure immediate recompute on tab visibility change
   useEffect(() => {
     const onVis = () => {
-      if (!paused && deadlineMs) {
-        const rem = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
-        setTimeRemaining(rem);
-      }
+      const state = runStateRef.current;
+      if (state.paused || state.deadlineMs === null) return;
+      setTimeRemaining(calculateRemainingTimeSeconds(state.deadlineMs));
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [paused, deadlineMs, setTimeRemaining]);
+  }, [setTimeRemaining]);
 
   return (
     <div className="timer h-[355px] w-[355px] md:h-96 md:w-96">

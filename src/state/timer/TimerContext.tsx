@@ -184,6 +184,14 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }
   }, [activeTimer, paused, isPomodoroFinished, completedTomatoes, timeRemaining, timerDurations, deadlineMs]);
 
+  useEffect(() => {
+    if (!paused || deadlineMs !== null) return;
+    const duration = timerDurations[activeTimer];
+    if (timeRemaining <= 0 || timeRemaining > duration) {
+      setTimeRemaining(duration);
+    }
+  }, [activeTimer, deadlineMs, paused, timeRemaining, timerDurations]);
+
   return (
     <TimerContext.Provider
       value={{
