@@ -37,13 +37,7 @@ const InstallPWAButton = () => {
 
     if (!isVisible) return null;
     return (
-        <Button
-            onClick={() => {
-                void onInstall();
-            }}
-            variant="secondary"
-            size="sm"
-        >
+        <Button onClick={() => { void onInstall(); }} variant="secondary" size="sm">
             Install App
         </Button>
     );

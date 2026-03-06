@@ -37,26 +37,26 @@ const defaultValue: ITimerContext = {
   setActiveTimer: (_variant: TimerVariants) => undefined,
 
   paused: true,
-  setPaused: (_paused: boolean) => undefined,
+  setPaused: (_p: boolean) => undefined,
 
   isPomodoroFinished: false,
-  setIsPomodoroFinished: (_finished: boolean) => undefined,
+  setIsPomodoroFinished: (_f: boolean) => undefined,
 
   completedTomatoes: 0,
-  setCompletedTomatoes: (_tomatoes: number) => undefined,
+  setCompletedTomatoes: (_t: number) => undefined,
 
   timeRemaining: 25 * 60,
-  setTimeRemaining: (_remaining: number) => undefined,
+  setTimeRemaining: (_t: number) => undefined,
 
   timerDurations: {
     pomodoro: 25 * 60,
     shortbreak: 5 * 60,
     longbreak: 15 * 60,
   },
-  setTimerDuration: (_durations: TimerDurations) => undefined,
+  setTimerDuration: (_td: TimerDurations) => undefined,
 
   deadlineMs: null,
-  setDeadlineMs: (_deadline: number | null) => undefined,
+  setDeadlineMs: (_d: number | null) => undefined,
 };
 
 const TimerContext = createContext<ITimerContext>(defaultValue);
