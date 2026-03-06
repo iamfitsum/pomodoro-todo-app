@@ -40,6 +40,7 @@ export const api = createTRPCNext<AppRouter>({
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          methodOverride: "POST",
         }),
       ],
     };

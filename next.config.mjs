@@ -68,18 +68,6 @@ const withPWA = createPWA({
       handler: "StaleWhileRevalidate",
       options: { cacheName: "images" },
     },
-    // API calls to same-origin: network-first with timeout and fallbacks
-    {
-      /** @param {{request: Request, sameOrigin: boolean, url: URL}} ctx */
-      urlPattern: (ctx) =>
-        ctx.sameOrigin && ctx.url.pathname.startsWith("/api"),
-      handler: "NetworkFirst",
-      options: {
-        cacheName: "api",
-        networkTimeoutSeconds: 3,
-        expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 },
-      },
-    },
   ],
 });
 
