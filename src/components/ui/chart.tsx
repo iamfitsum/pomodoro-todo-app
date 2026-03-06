@@ -107,7 +107,7 @@ function ChartTooltipContent({
         const isSliceCount =
           totalForSlice !== null && typeof item.value === "number";
         const valueText = isSliceCount
-          ? `${item.value} of ${totalForSlice}`
+          ? `${String(item.value)} of ${String(totalForSlice)}`
           : String(item.value ?? "");
         return (
           <div key={key} className="flex items-center justify-between gap-2">

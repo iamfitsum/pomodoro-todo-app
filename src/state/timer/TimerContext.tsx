@@ -34,29 +34,29 @@ type ITimerContext = {
 
 const defaultValue: ITimerContext = {
   activeTimer: TimerVariants.POMODORO,
-  setActiveTimer: (variant: TimerVariants) => undefined,
+  setActiveTimer: (_variant: TimerVariants) => undefined,
 
   paused: true,
-  setPaused: (p: boolean) => undefined,
+  setPaused: (_paused: boolean) => undefined,
 
   isPomodoroFinished: false,
-  setIsPomodoroFinished: (f: boolean) => undefined,
+  setIsPomodoroFinished: (_finished: boolean) => undefined,
 
   completedTomatoes: 0,
-  setCompletedTomatoes: (t: number) => undefined,
+  setCompletedTomatoes: (_tomatoes: number) => undefined,
 
   timeRemaining: 25 * 60,
-  setTimeRemaining: (t: number) => undefined,
+  setTimeRemaining: (_remaining: number) => undefined,
 
   timerDurations: {
     pomodoro: 25 * 60,
     shortbreak: 5 * 60,
     longbreak: 15 * 60,
   },
-  setTimerDuration: (td: TimerDurations) => undefined,
+  setTimerDuration: (_durations: TimerDurations) => undefined,
 
   deadlineMs: null,
-  setDeadlineMs: (d: number | null) => undefined,
+  setDeadlineMs: (_deadline: number | null) => undefined,
 };
 
 const TimerContext = createContext<ITimerContext>(defaultValue);
@@ -65,9 +65,9 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const normalizeTimerVariant = (value: unknown): TimerVariants => {
     if (typeof value !== "string") return defaultValue.activeTimer;
     const normalized = value.toLowerCase().replace(/\s+/g, "");
-    if (normalized === TimerVariants.POMODORO) return TimerVariants.POMODORO;
-    if (normalized === TimerVariants.SHORT) return TimerVariants.SHORT;
-    if (normalized === TimerVariants.LONG) return TimerVariants.LONG;
+    if (normalized === "pomodoro") return TimerVariants.POMODORO;
+    if (normalized === "shortbreak") return TimerVariants.SHORT;
+    if (normalized === "longbreak") return TimerVariants.LONG;
     return defaultValue.activeTimer;
   };
 
@@ -131,6 +131,13 @@ export const TimerProvider: React.FC<PropsWithChildren> = ({ children }) => {
         timeRemaining = saved.timeRemaining;
         if (!paused) {
           deadlineMs = computeResumeDeadlineMs(saved.timeRemaining);
+        } else {
+          // If persisted state captured a just-finished phase as 0 while paused,
+          // restore to the configured duration for the active timer.
+          const duration = timerDurations[activeTimer];
+          if (timeRemaining <= 0 || timeRemaining > duration) {
+            timeRemaining = duration;
+          }
         }
       } else {
         timeRemaining = timerDurations[activeTimer];

@@ -52,7 +52,12 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
       const w = new Worker("/workers/timerWorker.js");
       workerRef.current = w;
       w.onmessage = (e: MessageEvent) => {
-        const { type, remaining } = e.data || {};
+        const payload = e.data as unknown;
+        if (typeof payload !== "object" || payload === null) return;
+        const { type, remaining } = payload as {
+          type?: unknown;
+          remaining?: unknown;
+        };
         const state = runStateRef.current;
         if (
           type === "tick" &&
@@ -76,17 +81,18 @@ const TimerDial: React.FC<ITimerDial> = ({ timeRemaining, timeDuration }) => {
   useEffect(() => {
     if (paused || isFinished) return;
     const intervalId = setInterval(() => {
-      if (deadlineMs && deadlineMs > Date.now()) {
-        setTimeRemaining(calculateRemainingTimeSeconds(deadlineMs));
-      } else {
-        setTimeRemaining(secTimeRemaining > 0 ? secTimeRemaining - 1 : 0);
-      }
+      const state = runStateRef.current;
+      if (state.paused || state.deadlineMs === null) return;
+      setTimeRemaining(calculateRemainingTimeSeconds(state.deadlineMs));
     }, ONE_SECOND);
     return () => clearInterval(intervalId);
-  }, [paused, isFinished, deadlineMs, secTimeRemaining, setTimeRemaining]);
+  }, [paused, isFinished, setTimeRemaining]);
 
   useEffect(() => {
     if (!isFinished || paused) return;
+    // Close the race window before React state updates propagate.
+    // Late worker/interval ticks from the finished timer must be ignored.
+    runStateRef.current = { paused: true, deadlineMs: null };
     const audio = new Audio("/audio/doorbell.mp3");
     void audio.play();
 
