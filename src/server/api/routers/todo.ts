@@ -44,11 +44,20 @@ const localDateKeyToUtcStart = (dateKey: string, offsetMinutes: number) => {
   );
 };
 
+const formatPracticeLayer = (layer?: string | null) => {
+  if (!layer) return null;
+  return layer
+    .split("_")
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
+};
+
 export const todoRouter = createTRPCRouter({
   getAll: privateProcedure.query(async ({ ctx }) => {
     const todos = await ctx.prisma.todo.findMany({
       where: {
         authorId: ctx.userId,
+        hidden: false,
       },
       orderBy: {
         createdAt: "desc",
@@ -60,23 +69,20 @@ export const todoRouter = createTRPCRouter({
   getSelectedTodo: privateProcedure
     .input(z.object({ todoId: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.prisma.todo.findUnique({
+      return ctx.prisma.todo.findFirst({
         where: {
           id: input.todoId,
+          authorId: ctx.userId,
+          hidden: false,
         },
       });
     }),
   getTotalTomatoes: privateProcedure.query(async ({ ctx }) => {
-    const todos = await ctx.prisma.todo.findMany({
+    const totalTomatoes = await ctx.prisma.pomodoroSession.count({
       where: {
         authorId: ctx.userId,
       },
     });
-
-    const totalTomatoes = todos.reduce(
-      (acc, todo) => acc + (todo.tomatoes ?? 0),
-      0
-    );
 
     return { totalTomatoes };
   }),
@@ -85,6 +91,7 @@ export const todoRouter = createTRPCRouter({
       where: {
         done: true,
         authorId: ctx.userId,
+        hidden: false,
         createdAt: {
           gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
           lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
@@ -123,6 +130,7 @@ export const todoRouter = createTRPCRouter({
       where: {
         done: false,
         authorId: ctx.userId,
+        hidden: false,
         createdAt: {
           gte: new Date(new Date().getFullYear(), 0, 1), // Start of the current year
           lt: new Date(new Date().getFullYear() + 1, 0, 1), // Start of the next year
@@ -156,18 +164,28 @@ export const todoRouter = createTRPCRouter({
     return todosByMonth;
   }),
   analyticsOverview: privateProcedure.query(async ({ ctx }) => {
-    const todos = await ctx.prisma.todo.findMany({
-      where: {
-        authorId: ctx.userId,
-      },
-      select: {
-        createdAt: true,
-        done: true,
-        dueDate: true,
-        priority: true,
-        tomatoes: true,
-      },
-    });
+    const [todos, pomodoroSessions] = await Promise.all([
+      ctx.prisma.todo.findMany({
+        where: {
+          authorId: ctx.userId,
+          hidden: false,
+        },
+        select: {
+          createdAt: true,
+          done: true,
+          dueDate: true,
+          priority: true,
+        },
+      }),
+      ctx.prisma.pomodoroSession.findMany({
+        where: {
+          authorId: ctx.userId,
+        },
+        select: {
+          createdAt: true,
+        },
+      }),
+    ]);
 
     const now = new Date();
     const totalTasks = todos.length;
@@ -175,10 +193,7 @@ export const todoRouter = createTRPCRouter({
     const completionRate = totalTasks === 0
       ? 0
       : Math.round((completedTasks / totalTasks) * 100);
-    const totalTomatoes = todos.reduce(
-      (acc, todo) => acc + (todo.tomatoes ?? 0),
-      0
-    );
+    const totalTomatoes = pomodoroSessions.length;
     const focusMinutes = totalTomatoes * 25;
     const overdueOpen = todos.filter(
       (todo) => !todo.done && !!todo.dueDate && todo.dueDate < now
@@ -214,13 +229,10 @@ export const todoRouter = createTRPCRouter({
     const weeklyFocusTrend = weekStarts.map((weekStart) => {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 7);
-      const weekTodos = todos.filter((todo) =>
-        todo.createdAt >= weekStart && todo.createdAt < weekEnd
+      const weekSessions = pomodoroSessions.filter((session) =>
+        session.createdAt >= weekStart && session.createdAt < weekEnd
       );
-      const tomatoes = weekTodos.reduce(
-        (acc, todo) => acc + (todo.tomatoes ?? 0),
-        0
-      );
+      const tomatoes = weekSessions.length;
       return {
         week: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
         tomatoes,
@@ -355,15 +367,17 @@ export const todoRouter = createTRPCRouter({
         },
         select: {
           todoId: true,
+          source: true,
+          externalSyncId: true,
+          externalSessionId: true,
+          externalSessionLabel: true,
+          externalLayer: true,
+          externalSummary: true,
+          externalConceptTags: true,
         },
       });
 
-      const byTodo = new Map<string, number>();
-      for (const session of sessions) {
-        byTodo.set(session.todoId, (byTodo.get(session.todoId) ?? 0) + 1);
-      }
-
-      const todoIds = Array.from(byTodo.keys());
+      const todoIds = Array.from(new Set(sessions.map((session) => session.todoId)));
       const todos = todoIds.length > 0
         ? await ctx.prisma.todo.findMany({
           where: {
@@ -375,18 +389,94 @@ export const todoRouter = createTRPCRouter({
           select: {
             id: true,
             title: true,
+            hidden: true,
+            source: true,
+            externalKey: true,
           },
         })
         : [];
 
-      const titleById = new Map(todos.map((todo) => [todo.id, todo.title]));
-      const items = todoIds
-        .map((todoId) => ({
-          todoId,
-          title: titleById.get(todoId) ?? "Unknown todo",
-          sessions: byTodo.get(todoId) ?? 0,
-        }))
-        .sort((a, b) => b.sessions - a.sessions);
+      const metaById = new Map(
+        todos.map((todo) => [
+          todo.id,
+          {
+            title: todo.title,
+            hidden: todo.hidden,
+            source: todo.source ?? "local",
+            externalKey: todo.externalKey,
+          },
+        ])
+      );
+      const itemMap = new Map<
+        string,
+        {
+          id: string;
+          todoId: string;
+          title: string;
+          sessions: number;
+          hidden: boolean;
+          source: string;
+          externalKey: string | null;
+          sourceLabel: string;
+          layerLabel: string | null;
+          summary: string | null;
+          conceptTags: string[];
+        }
+      >();
+
+      for (const session of sessions) {
+        const meta = metaById.get(session.todoId);
+        const source = session.source ?? meta?.source ?? "local";
+        const groupingKey =
+          source === "deliberate_coder_sync"
+            ? `dc:${session.externalSessionId ?? session.externalSyncId ?? session.todoId}`
+            : `todo:${session.todoId}`;
+
+        const existing = itemMap.get(groupingKey);
+        if (existing) {
+          existing.sessions += 1;
+          continue;
+        }
+
+        const conceptTags = session.externalConceptTags
+          ? session.externalConceptTags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+          : [];
+
+        itemMap.set(groupingKey, {
+          id: groupingKey,
+          todoId: session.todoId,
+          title:
+            source === "deliberate_coder_sync"
+              ? session.externalSessionLabel ??
+                meta?.title ??
+                "Deliberate Coder session"
+              : meta?.title ?? "Unknown todo",
+          sessions: 1,
+          hidden: meta?.hidden ?? false,
+          source,
+          externalKey: meta?.externalKey ?? null,
+          sourceLabel:
+            source === "deliberate_coder_sync"
+              ? "Deliberate Coder"
+              : "Pomodoro Todo",
+          layerLabel:
+            source === "deliberate_coder_sync"
+              ? formatPracticeLayer(session.externalLayer)
+              : null,
+          summary:
+            source === "deliberate_coder_sync"
+              ? session.externalSummary ?? null
+              : null,
+          conceptTags,
+        });
+      }
+
+      const items = Array.from(itemMap.values()).sort(
+        (a, b) => b.sessions - a.sessions
+      );
 
       return {
         date: input.date,
@@ -444,6 +534,21 @@ export const todoRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const existingTodo = await ctx.prisma.todo.findFirst({
+        where: {
+          id: input.id,
+          authorId: ctx.userId,
+          hidden: false,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!existingTodo) {
+        throw new Error("Todo not found");
+      }
+
       const todo = await ctx.prisma.todo.update({
         data: {
           title: input.title,
@@ -462,6 +567,21 @@ export const todoRouter = createTRPCRouter({
   delete: privateProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const existingTodo = await ctx.prisma.todo.findFirst({
+        where: {
+          id: input.id,
+          authorId: ctx.userId,
+          hidden: false,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!existingTodo) {
+        throw new Error("Todo not found");
+      }
+
       return ctx.prisma.todo.delete({
         where: {
           id: input.id,
