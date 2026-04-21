@@ -21,9 +21,13 @@ model Todo {
     dueDate   DateTime?
     priority  String?      @default("LOW")
     tomatoes  Int      @default(0)
+    hidden    Boolean  @default(false)
+    source    String   @default("local")
+    externalKey String?
     authorId String
 
     @@index([authorId])
+    @@unique([authorId, externalKey])
 }
 
 model PomodoroSession {
@@ -31,6 +35,13 @@ model PomodoroSession {
     createdAt DateTime @default(now())
     authorId  String
     todoId    String
+    source    String   @default("local")
+    externalSyncId String? @unique
+    externalSessionId String?
+    externalSessionLabel String?
+    externalLayer String?
+    externalSummary String?
+    externalConceptTags String?
 
     @@index([authorId, createdAt])
     @@index([todoId])
