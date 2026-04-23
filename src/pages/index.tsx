@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AnalyticsDashboard from "~/components/AnalyticsDashboard";
 import EditTodoForm from "~/components/EditTodoForm";
 import Footer from "~/components/Footer";
@@ -14,7 +14,8 @@ import WelcomePage from "~/components/WelcomePage";
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const { isLoaded: userLoaded, isSignedIn, user } = useUser();
+  const lastSyncedViewerProfileForUserId = useRef<string | null>(null);
   const [homeTab, setHomeTab] = useState<"task" | "analytics">("task");
   const [enableTimer, setEnableTimer] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<{
@@ -47,6 +48,7 @@ export default function Home() {
   api.todo.getAll.useQuery(undefined, {
     enabled: userLoaded && !!isSignedIn,
   });
+  const syncViewerProfile = api.todo.syncViewerProfile.useMutation();
 
   const selectedTodoQuery = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
@@ -99,6 +101,30 @@ export default function Home() {
       setEnableTimer(false);
     }
   }, [selectedTodo.value, fullTodo.done]);
+
+  useEffect(() => {
+    lastSyncedViewerProfileForUserId.current = null;
+  }, [user?.id]);
+
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+
+    if (!userLoaded || !isSignedIn || !currentUserId) {
+      lastSyncedViewerProfileForUserId.current = null;
+      return;
+    }
+
+    if (lastSyncedViewerProfileForUserId.current === currentUserId) return;
+
+    lastSyncedViewerProfileForUserId.current = currentUserId;
+    syncViewerProfile.mutate(undefined, {
+      onError() {
+        if (lastSyncedViewerProfileForUserId.current === currentUserId) {
+          lastSyncedViewerProfileForUserId.current = null;
+        }
+      },
+    });
+  }, [isSignedIn, syncViewerProfile, user?.id, userLoaded]);
 
   // Persist selected tab across visits
   useEffect(() => {
