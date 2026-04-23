@@ -49,7 +49,7 @@ model PomodoroSession {
 
 model PomodoroUserProfile {
     authorId     String   @id
-    primaryEmail String   @unique
+    primaryEmail String   @unique @db.Citext
     displayName  String?
     createdAt    DateTime @default(now())
     updatedAt    DateTime @updatedAt

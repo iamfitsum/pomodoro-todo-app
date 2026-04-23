@@ -14,8 +14,8 @@ import WelcomePage from "~/components/WelcomePage";
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const { isLoaded: userLoaded, isSignedIn } = useUser();
-  const hasSyncedViewerProfile = useRef(false);
+  const { isLoaded: userLoaded, isSignedIn, user } = useUser();
+  const lastSyncedViewerProfileForUserId = useRef<string | null>(null);
   const [homeTab, setHomeTab] = useState<"task" | "analytics">("task");
   const [enableTimer, setEnableTimer] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<{
@@ -103,11 +103,28 @@ export default function Home() {
   }, [selectedTodo.value, fullTodo.done]);
 
   useEffect(() => {
-    if (!userLoaded || !isSignedIn || hasSyncedViewerProfile.current) return;
+    lastSyncedViewerProfileForUserId.current = null;
+  }, [user?.id]);
 
-    hasSyncedViewerProfile.current = true;
-    syncViewerProfile.mutate();
-  }, [isSignedIn, syncViewerProfile, userLoaded]);
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+
+    if (!userLoaded || !isSignedIn || !currentUserId) {
+      lastSyncedViewerProfileForUserId.current = null;
+      return;
+    }
+
+    if (lastSyncedViewerProfileForUserId.current === currentUserId) return;
+
+    lastSyncedViewerProfileForUserId.current = currentUserId;
+    syncViewerProfile.mutate(undefined, {
+      onError() {
+        if (lastSyncedViewerProfileForUserId.current === currentUserId) {
+          lastSyncedViewerProfileForUserId.current = null;
+        }
+      },
+    });
+  }, [isSignedIn, syncViewerProfile, user?.id, userLoaded]);
 
   // Persist selected tab across visits
   useEffect(() => {

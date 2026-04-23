@@ -56,11 +56,14 @@ const formatPracticeLayer = (layer?: string | null) => {
 const getPrimaryEmailAddress = async (authorId: string) => {
   const client = await clerkClient();
   const user = await client.users.getUser(authorId);
+  const verifiedEmailAddresses = user.emailAddresses.filter(
+    (emailAddress) => emailAddress.verification.status === "verified"
+  );
   const primaryEmail =
-    user.emailAddresses.find(
+    verifiedEmailAddresses.find(
       (emailAddress) => emailAddress.id === user.primaryEmailAddressId
     )?.emailAddress ??
-    user.emailAddresses[0]?.emailAddress ??
+    verifiedEmailAddresses[0]?.emailAddress ??
     null;
 
   const displayName =
