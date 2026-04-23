@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AnalyticsDashboard from "~/components/AnalyticsDashboard";
 import EditTodoForm from "~/components/EditTodoForm";
 import Footer from "~/components/Footer";
@@ -15,6 +15,7 @@ import { api } from "~/utils/api";
 
 export default function Home() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const hasSyncedViewerProfile = useRef(false);
   const [homeTab, setHomeTab] = useState<"task" | "analytics">("task");
   const [enableTimer, setEnableTimer] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<{
@@ -47,6 +48,7 @@ export default function Home() {
   api.todo.getAll.useQuery(undefined, {
     enabled: userLoaded && !!isSignedIn,
   });
+  const syncViewerProfile = api.todo.syncViewerProfile.useMutation();
 
   const selectedTodoQuery = api.todo.getSelectedTodo.useQuery(
     { todoId: selectedTodo.value },
@@ -99,6 +101,13 @@ export default function Home() {
       setEnableTimer(false);
     }
   }, [selectedTodo.value, fullTodo.done]);
+
+  useEffect(() => {
+    if (!userLoaded || !isSignedIn || hasSyncedViewerProfile.current) return;
+
+    hasSyncedViewerProfile.current = true;
+    syncViewerProfile.mutate();
+  }, [isSignedIn, syncViewerProfile, userLoaded]);
 
   // Persist selected tab across visits
   useEffect(() => {

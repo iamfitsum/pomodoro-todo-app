@@ -46,3 +46,11 @@ model PomodoroSession {
     @@index([authorId, createdAt])
     @@index([todoId])
 }
+
+model PomodoroUserProfile {
+    authorId     String   @id
+    primaryEmail String   @unique
+    displayName  String?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}

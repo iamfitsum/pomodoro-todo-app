@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { clerkClient } from "@clerk/nextjs/server";
 import type { Todo } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
@@ -52,7 +53,51 @@ const formatPracticeLayer = (layer?: string | null) => {
     .join(" ");
 };
 
+const getPrimaryEmailAddress = async (authorId: string) => {
+  const client = await clerkClient();
+  const user = await client.users.getUser(authorId);
+  const primaryEmail =
+    user.emailAddresses.find(
+      (emailAddress) => emailAddress.id === user.primaryEmailAddressId
+    )?.emailAddress ??
+    user.emailAddresses[0]?.emailAddress ??
+    null;
+
+  const displayName =
+    user.fullName?.trim() ||
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+    user.username?.trim() ||
+    primaryEmail;
+
+  return {
+    primaryEmail: primaryEmail?.trim().toLowerCase() ?? null,
+    displayName: displayName?.trim() || null,
+  };
+};
+
 export const todoRouter = createTRPCRouter({
+  syncViewerProfile: privateProcedure.mutation(async ({ ctx }) => {
+    const profile = await getPrimaryEmailAddress(ctx.userId);
+
+    if (!profile.primaryEmail) {
+      throw new Error("No verified email was found for the signed-in user.");
+    }
+
+    return ctx.prisma.pomodoroUserProfile.upsert({
+      where: {
+        authorId: ctx.userId,
+      },
+      update: {
+        primaryEmail: profile.primaryEmail,
+        displayName: profile.displayName,
+      },
+      create: {
+        authorId: ctx.userId,
+        primaryEmail: profile.primaryEmail,
+        displayName: profile.displayName,
+      },
+    });
+  }),
   getAll: privateProcedure.query(async ({ ctx }) => {
     const todos = await ctx.prisma.todo.findMany({
       where: {
@@ -328,8 +373,9 @@ export const todoRouter = createTRPCRouter({
 
     let currentStreak = 0;
     for (let i = days.length - 1; i >= 0; i--) {
-      if (days[i]?.count && days[i].count > 0) currentStreak += 1;
-      else break;
+      const day = days[i];
+      if (!day || day.count <= 0) break;
+      currentStreak += 1;
     }
 
     const totalActiveDays = days.filter((day) => day.count > 0).length;
