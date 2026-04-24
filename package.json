@@ -10,7 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.39.0",
+    "@clerk/nextjs": "^6.39.3",
     "@clerk/themes": "^2.4.57",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^3.9.1",
@@ -27,17 +27,17 @@
     "@radix-ui/react-toast": "^1.2.2",
     "@t3-oss/env-nextjs": "^0.3.1",
     "@tanstack/react-query": "^4.36.1",
-    "@trpc/client": "^10.45.2",
-    "@trpc/next": "^10.45.2",
-    "@trpc/react-query": "^10.45.2",
-    "@trpc/server": "^10.45.3",
+    "@trpc/client": "^10.45.4",
+    "@trpc/next": "^10.45.4",
+    "@trpc/react-query": "^10.45.4",
+    "@trpc/server": "^10.45.4",
     "class-variance-authority": "^0.6.1",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.1",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.252.0",
-    "next": "^15.5.10",
+    "next": "^15.5.15",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-day-picker": "^8.10.1",
@@ -60,14 +60,14 @@
     "@typescript-eslint/parser": "^8.40.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.33.0",
-    "eslint-config-next": "^15.5.0",
-    "postcss": "^8.4.47",
+    "eslint-config-next": "^15.5.15",
+    "postcss": "^8.5.10",
     "prettier": "^2.8.8",
     "prettier-plugin-tailwindcss": "^0.2.8",
     "prisma": "^4.16.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.6.3",
-    "webpack": "^5.104.1"
+    "webpack": "^5.106.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.14.1"
@@ -78,12 +78,19 @@
       "nanoid": ">=3.3.8",
       "rollup": "^2.80.0",
       "minimatch": "^9.0.7",
-      "serialize-javascript": "^7.0.3",
+      "serialize-javascript": "7.0.5",
       "glob": "^10.5.0",
-      "lodash": "^4.17.23",
+      "lodash": "4.18.1",
+      "flatted": "3.4.2",
+      "brace-expansion": "2.0.3",
+      "picomatch": "4.0.4",
+      "yaml@<2": "1.10.3",
+      "yaml@>=2 <2.8.3": "2.8.3",
+      "postcss": "8.5.10",
+      "@clerk/shared": "3.47.5",
       "ajv@6.12.6": "6.14.0",
       "js-yaml": "^4.1.1",
-      "webpack": "^5.104.1"
+      "webpack": "5.106.2"
     }
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
