@@ -325,11 +325,11 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
                 <div className="h-4 w-3/5 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
               </div>
             ) : selectedDateDetails && selectedDateDetails.items.length > 0 ? (
-              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-64 space-y-2 overflow-y-auto overflow-x-hidden pr-1">
                 {selectedDateDetails.items.some(
                   (item) => item.source === "deliberate_coder_sync"
                 ) && (
-                  <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200">
+                  <div className="break-words rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200">
                     Sessions marked below as Deliberate Coder were mirrored in from
                     the deliberate-coder tracker.
                   </div>
@@ -337,10 +337,10 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
                 {selectedDateDetails.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800"
+                    className="flex min-w-0 items-start justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-slate-700 dark:text-slate-200">
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <p className="break-words text-sm text-slate-700 dark:text-slate-200">
                         {item.title}
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -360,17 +360,19 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
                         )}
                       </div>
                       {item.summary && (
-                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-2 break-words text-xs text-slate-500 dark:text-slate-400">
                           {item.summary}
                         </p>
                       )}
                       {item.conceptTags.length > 0 && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
                           Concepts: {item.conceptTags.join(", ")}
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline">{item.sessions}</Badge>
+                    <Badge variant="outline" className="shrink-0">
+                      {item.sessions}
+                    </Badge>
                   </div>
                 ))}
               </div>
