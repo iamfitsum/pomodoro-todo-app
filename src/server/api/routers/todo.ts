@@ -53,6 +53,57 @@ const formatPracticeLayer = (layer?: string | null) => {
     .join(" ");
 };
 
+const normalizeConceptList = (concepts: string[]) => {
+  return concepts
+    .map((concept) => concept.trim().toLowerCase())
+    .filter(Boolean)
+    .sort();
+};
+
+const conceptListsMatch = (left: string[], right: string[]) => {
+  if (left.length !== right.length) return false;
+  return left.every((concept, index) => concept === right[index]);
+};
+
+const cleanDeliberateCoderSummary = ({
+  summary,
+  layerLabel,
+  conceptTags,
+}: {
+  summary?: string | null;
+  layerLabel?: string | null;
+  conceptTags: string[];
+}) => {
+  if (!summary) return null;
+
+  const normalizedLayer = layerLabel?.trim().toLowerCase();
+  const normalizedConceptsList = normalizeConceptList(conceptTags);
+  const usefulParts = summary
+    .split(/\s+·\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => {
+      const normalizedPart = part.toLowerCase();
+      if (
+        normalizedLayer &&
+        normalizedPart === `layer: ${normalizedLayer}`
+      ) {
+        return false;
+      }
+      if (normalizedPart.startsWith("concepts:")) {
+        const partConcepts = normalizeConceptList(
+          part.slice(part.indexOf(":") + 1).split(",")
+        );
+        if (conceptListsMatch(partConcepts, normalizedConceptsList)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+  return usefulParts.length > 0 ? usefulParts.join(" · ") : null;
+};
+
 const getPrimaryEmailAddress = async (authorId: string) => {
   const client = await clerkClient();
   const user = await client.users.getUser(authorId);
@@ -494,6 +545,19 @@ export const todoRouter = createTRPCRouter({
             .filter(Boolean)
           : [];
 
+        const layerLabel =
+          source === "deliberate_coder_sync"
+            ? formatPracticeLayer(session.externalLayer)
+            : null;
+        const summary =
+          source === "deliberate_coder_sync"
+            ? cleanDeliberateCoderSummary({
+              summary: session.externalSummary,
+              layerLabel,
+              conceptTags,
+            })
+            : null;
+
         itemMap.set(groupingKey, {
           id: groupingKey,
           todoId: session.todoId,
@@ -511,14 +575,8 @@ export const todoRouter = createTRPCRouter({
             source === "deliberate_coder_sync"
               ? "Deliberate Coder"
               : "Pomodoro Todo",
-          layerLabel:
-            source === "deliberate_coder_sync"
-              ? formatPracticeLayer(session.externalLayer)
-              : null,
-          summary:
-            source === "deliberate_coder_sync"
-              ? session.externalSummary ?? null
-              : null,
+          layerLabel,
+          summary,
           conceptTags,
         });
       }
