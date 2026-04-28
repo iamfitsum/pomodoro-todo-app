@@ -53,6 +53,18 @@ const formatPracticeLayer = (layer?: string | null) => {
     .join(" ");
 };
 
+const normalizeConceptList = (concepts: string[]) => {
+  return concepts
+    .map((concept) => concept.trim().toLowerCase())
+    .filter(Boolean)
+    .sort();
+};
+
+const conceptListsMatch = (left: string[], right: string[]) => {
+  if (left.length === 0 || left.length !== right.length) return false;
+  return left.every((concept, index) => concept === right[index]);
+};
+
 const cleanDeliberateCoderSummary = ({
   summary,
   layerLabel,
@@ -65,7 +77,7 @@ const cleanDeliberateCoderSummary = ({
   if (!summary) return null;
 
   const normalizedLayer = layerLabel?.trim().toLowerCase();
-  const normalizedConcepts = conceptTags.join(", ").trim().toLowerCase();
+  const normalizedConceptsList = normalizeConceptList(conceptTags);
   const usefulParts = summary
     .split(/\s+·\s+/)
     .map((part) => part.trim())
@@ -78,11 +90,13 @@ const cleanDeliberateCoderSummary = ({
       ) {
         return false;
       }
-      if (
-        normalizedConcepts &&
-        normalizedPart === `concepts: ${normalizedConcepts}`
-      ) {
-        return false;
+      if (normalizedPart.startsWith("concepts:")) {
+        const partConcepts = normalizeConceptList(
+          part.slice(part.indexOf(":") + 1).split(",")
+        );
+        if (conceptListsMatch(partConcepts, normalizedConceptsList)) {
+          return false;
+        }
       }
       return true;
     });
