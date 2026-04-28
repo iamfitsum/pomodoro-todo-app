@@ -61,7 +61,7 @@ const normalizeConceptList = (concepts: string[]) => {
 };
 
 const conceptListsMatch = (left: string[], right: string[]) => {
-  if (left.length === 0 || left.length !== right.length) return false;
+  if (left.length !== right.length) return false;
   return left.every((concept, index) => concept === right[index]);
 };
 
