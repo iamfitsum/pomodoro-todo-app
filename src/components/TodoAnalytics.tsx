@@ -1,5 +1,5 @@
 import { Apple, CircleIcon, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
@@ -30,6 +30,42 @@ const getMinuteFromNumber = (num: number) => {
 const parseLocalDateKey = (dateKey: string) => {
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
+};
+
+const renderInlineMarkdownLinks = (value: string): ReactNode => {
+  const text = value.replace(/^\s*[-*]\s+/, "");
+  const parts: ReactNode[] = [];
+  const markdownLinkPattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = markdownLinkPattern.exec(text)) !== null) {
+    const [fullMatch, label, href] = match;
+
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    parts.push(
+      <a
+        key={`${href}-${match.index}`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium text-sky-600 underline decoration-sky-500/40 underline-offset-4 hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
+      >
+        {label}
+      </a>
+    );
+
+    lastIndex = match.index + fullMatch.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
 };
 
 type Props = {
@@ -341,7 +377,7 @@ const TodoAnalytics = ({ fullTodo, showTodoDetailsSkeleton = false }: Props) => 
                   >
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <p className="break-words text-sm text-slate-700 dark:text-slate-200">
-                        {item.title}
+                        {renderInlineMarkdownLinks(item.title)}
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
                         <Badge
